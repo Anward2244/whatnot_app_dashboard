@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import Chart from 'chart.js/auto';
+import ReactApexChart from 'react-apexcharts';
 
 const ProductSales = () => {
   const { filteredSales, isLoading } = useOutletContext();
-  const chartRef = useRef(null);
-  const chartInstance = useRef(null);
 
   const brands = useMemo(() => {
     const brandSet = new Set();
@@ -46,15 +44,7 @@ const ProductSales = () => {
 
   const chartData = useMemo(() => {
     const labels = Object.keys(salesByProduct);
-    const backgroundColors = labels.map(label => {
-      const brand = (productBrands[label] || '').toLowerCase();
-      const productLower = label.toLowerCase();
-      if (brand.includes('boat') || productLower.includes('boat')) return 'rgba(239, 68, 68, 0.6)';
-      if (brand.includes('realme') || productLower.includes('realme')) return 'rgba(234, 179, 8, 0.6)';
-      return 'rgba(156, 163, 175, 0.6)';
-    });
-
-    const borderColors = labels.map(label => {
+    const colors = labels.map(label => {
       const brand = (productBrands[label] || '').toLowerCase();
       const productLower = label.toLowerCase();
       if (brand.includes('boat') || productLower.includes('boat')) return 'rgba(239, 68, 68, 0.8)';
@@ -62,65 +52,48 @@ const ProductSales = () => {
       return 'rgba(156, 163, 175, 0.8)';
     });
 
-    const hoverBackgroundColors = labels.map(label => {
-      const brand = (productBrands[label] || '').toLowerCase();
-      const productLower = label.toLowerCase();
-      if (brand.includes('boat') || productLower.includes('boat')) return 'rgba(239, 68, 68, 1)';
-      if (brand.includes('realme') || productLower.includes('realme')) return 'rgba(234, 179, 8, 1)';
-      return 'rgba(156, 163, 175, 1)';
-    });
-
     return {
-      labels,
-      datasets: [{
-        label: 'Total Units Sold',
-        data: Object.values(salesByProduct),
-        backgroundColor: backgroundColors,
-        borderColor: borderColors,
-        hoverBackgroundColor: hoverBackgroundColors,
-        borderWidth: 1,
-        borderRadius: 6,
-        barPercentage: 0.6,
+      series: [{
+        name: 'Total Units Sold',
+        data: Object.values(salesByProduct)
       }],
-    };
-  }, [salesByProduct, productBrands]);
-
-  useEffect(() => {
-    if (chartInstance.current) chartInstance.current.destroy();
-    if (chartRef.current && !isLoading) {
-      chartInstance.current = new Chart(chartRef.current, {
-        type: 'bar',
-        data: chartData,
-        options: { 
-          indexAxis: 'y', 
-          responsive: true, 
-          maintainAspectRatio: false, 
-          plugins: { 
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: '#1f2937',
-              titleColor: '#f3f4f6',
-              bodyColor: '#d1d5db',
-              borderColor: '#374151',
-              borderWidth: 1,
-              padding: 12,
-              cornerRadius: 8,
-              displayColors: false,
-            }
-          },
-          scales: {
-            x: { ticks: { color: '#9ca3af', padding: 8 }, grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false }, border: { display: false } },
-            y: { ticks: { color: '#9ca3af', padding: 8 }, grid: { display: false, drawBorder: false }, border: { display: false } }
-          },
-          animation: {
-            duration: 800,
-            easing: 'easeOutQuart'
+      options: {
+        chart: {
+          type: 'bar',
+          toolbar: { show: false },
+          background: 'transparent'
+        },
+        colors,
+        plotOptions: {
+          bar: {
+            horizontal: true,
+            distributed: true,
+            borderRadius: 6,
+            barHeight: '60%'
           }
         },
-      });
-    }
-    return () => chartInstance.current?.destroy();
-  }, [chartData, isLoading]);
+        dataLabels: { enabled: false },
+        legend: { show: false },
+        xaxis: {
+          categories: labels,
+          labels: { style: { colors: '#9ca3af' } },
+          axisBorder: { show: false },
+          axisTicks: { show: false }
+        },
+        yaxis: {
+          labels: { style: { colors: '#9ca3af' } },
+          axisBorder: { show: false },
+          axisTicks: { show: false }
+        },
+        grid: {
+          borderColor: 'rgba(255, 255, 255, 0.05)',
+          xaxis: { lines: { show: true } },
+          yaxis: { lines: { show: false } }
+        },
+        tooltip: { theme: 'dark' }
+      }
+    };
+  }, [salesByProduct, productBrands]);
 
   if (isLoading) return <div className="text-gray-400 font-bold text-center py-12">Loading chart data...</div>;
 
@@ -153,7 +126,7 @@ const ProductSales = () => {
         ))}
       </div>
       <div className="relative flex-1 w-full min-h-100">
-        <canvas ref={chartRef}></canvas>
+        <ReactApexChart options={chartData.options} series={chartData.series} type="bar" height="100%" />
       </div>
     </div>
   );

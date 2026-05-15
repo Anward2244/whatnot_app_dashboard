@@ -12,11 +12,12 @@ const Layout = () => {
   const [dateRange, setDateRange] = useState([null, null]);
   const [startDate, endDate] = dateRange;
   const [salesData, setSalesData] = useState([]);
+  const [promotersData, setPromotersData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
-    const fetchSalesData = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
         const token = localStorage.getItem('token');
@@ -25,19 +26,28 @@ const Layout = () => {
           return;
         }
         
-        const response = await axios.post(URLS.GetAllSales, {}, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const data = response.data?.data || response.data;
-        setSalesData(Array.isArray(data) ? data : []);
+        const [salesResponse, promotersResponse] = await Promise.all([
+          axios.post(URLS.GetAllSales, {}, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.post(URLS.GetAllPromoters, {}, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        ]);
+
+        const sData = salesResponse.data?.data || salesResponse.data;
+        setSalesData(Array.isArray(sData) ? sData : []);
+
+        const pData = promotersResponse.data?.promoters || promotersResponse.data?.data || promotersResponse.data || [];
+        setPromotersData(Array.isArray(pData) ? pData : []);
       } catch (error) {
-        console.error('Error fetching sales data:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchSalesData();
+    fetchData();
   }, [navigate]);
 
   useEffect(() => {
@@ -66,17 +76,36 @@ const Layout = () => {
     });
   }, [salesData, startDate, endDate]);
 
+  const filteredPromoters = useMemo(() => {
+    let result = promotersData;
+
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+
+      result = promotersData.filter(item => {
+        const itemDate = new Date(item.logCreatedDate || item.joinDate || item.registeredAt || item.timestamp || item.createdAt);
+        return itemDate >= start && itemDate <= end;
+      });
+    }
+
+    return result;
+  }, [promotersData, startDate, endDate]);
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/login');
   };
 
   const navItems = [
-    { name: 'Category Sales', path: '/' },
+    { name: 'Dashboard', path: '/' },
+    { name: 'Category Sales', path: '/promoters-sales' },
     { name: 'Brands', path: '/brand-sales' },
     { name: 'Store Sales', path: '/store-sales' },
     { name: 'Product Sales', path: '/product-sales' },
-    { name: 'Sales Report', path: '/dashboard' },
+    { name: 'Sales Report', path: '/promoters' },
   ];
 
   return (
@@ -209,7 +238,7 @@ const Layout = () => {
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-8 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-track]:shadow-[inset_2px_2px_5px_#111827,inset_-2px_-2px_5px_#374151] [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500">
-          <Outlet context={{ filteredSales, isLoading }} />
+          <Outlet context={{ filteredSales, filteredPromoters, isLoading }} />
         </main>
       </div>
       </div>

@@ -1,11 +1,9 @@
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import Chart from 'chart.js/auto';
+import ReactApexChart from 'react-apexcharts';
 
 const CategorySales = () => {
   const { filteredSales, isLoading } = useOutletContext();
-  const chartRef = useRef(null);
-  const chartInstance = useRef(null);
 
   const categoryProductSales = useMemo(() => {
     const grouped = {};
@@ -42,16 +40,7 @@ const CategorySales = () => {
     const labels = Object.keys(categoryProductSales).map(cat => [cat, categoryProductSales[cat].product]);
     const data = Object.values(categoryProductSales).map(val => val.sold);
 
-    const backgroundColors = labels.map(labelArray => {
-      const category = labelArray[0];
-      const brand = (categoryProductSales[category]?.brand || '').toLowerCase();
-      const lowerLabel = (labelArray[0] + ' ' + labelArray[1]).toLowerCase();
-      if (brand.includes('boat') || lowerLabel.includes('boat')) return 'rgba(239, 68, 68, 0.6)';
-      if (brand.includes('realme') || lowerLabel.includes('realme')) return 'rgba(234, 179, 8, 0.6)';
-      return 'rgba(156, 163, 175, 0.6)';
-    });
-
-    const borderColors = labels.map(labelArray => {
+    const colors = labels.map(labelArray => {
       const category = labelArray[0];
       const brand = (categoryProductSales[category]?.brand || '').toLowerCase();
       const lowerLabel = (labelArray[0] + ' ' + labelArray[1]).toLowerCase();
@@ -60,84 +49,58 @@ const CategorySales = () => {
       return 'rgba(156, 163, 175, 0.8)';
     });
 
-    const hoverBackgroundColors = labels.map(labelArray => {
-      const category = labelArray[0];
-      const brand = (categoryProductSales[category]?.brand || '').toLowerCase();
-      const lowerLabel = (labelArray[0] + ' ' + labelArray[1]).toLowerCase();
-      if (brand.includes('boat') || lowerLabel.includes('boat')) return 'rgba(239, 68, 68, 1)';
-      if (brand.includes('realme') || lowerLabel.includes('realme')) return 'rgba(234, 179, 8, 1)';
-      return 'rgba(156, 163, 175, 1)';
-    });
-
     return {
-      labels,
-      datasets: [{ 
-        label: 'Units Sold (Top Product)', 
-        data, 
-        backgroundColor: backgroundColors, 
-        borderColor: borderColors, 
-        hoverBackgroundColor: hoverBackgroundColors,
-        borderWidth: 1, 
-        borderRadius: 6, 
-        barPercentage: 0.6 
-      }]
+      series: [{
+        name: 'Units Sold (Top Product)',
+        data
+      }],
+      options: {
+        chart: {
+          type: 'bar',
+          toolbar: { show: false },
+          background: 'transparent'
+        },
+        colors,
+        plotOptions: {
+          bar: {
+            horizontal: true,
+            distributed: true,
+            borderRadius: 6,
+            barHeight: '60%'
+          }
+        },
+        dataLabels: { enabled: false },
+        legend: { show: false },
+        xaxis: {
+          categories: labels,
+          labels: { style: { colors: '#9ca3af' } },
+          axisBorder: { show: false },
+          axisTicks: { show: false }
+        },
+        yaxis: {
+          labels: { style: { colors: '#9ca3af' } },
+          axisBorder: { show: false },
+          axisTicks: { show: false }
+        },
+        grid: {
+          borderColor: 'rgba(255, 255, 255, 0.05)',
+          xaxis: { lines: { show: true } },
+          yaxis: { lines: { show: false } }
+        },
+        tooltip: { theme: 'dark' }
+      }
     };
   }, [categoryProductSales]);
 
   console.log(filteredSales)
   
-  useEffect(() => {
-    if (chartInstance.current) chartInstance.current.destroy();
-    if (chartRef.current && !isLoading) {
-      chartInstance.current = new Chart(chartRef.current, {
-        type: 'bar',
-        data: chartData,
-        options: { 
-          indexAxis: 'y',
-          responsive: true, 
-          maintainAspectRatio: false, 
-          plugins: { 
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: '#1f2937',
-              titleColor: '#f3f4f6',
-              bodyColor: '#d1d5db',
-              borderColor: '#374151',
-              borderWidth: 1,
-              padding: 12,
-              cornerRadius: 8,
-              displayColors: false,
-            }
-          }, 
-          scales: { 
-            x: { 
-              grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
-              ticks: { padding: 8, color: '#9ca3af' },
-              border: { display: false } 
-            }, 
-            y: { 
-              grid: { display: false, drawBorder: false }, 
-              ticks: { padding: 8, color: '#9ca3af' },
-              border: { display: false } 
-            } 
-          },
-          animation: {
-            duration: 800,
-            easing: 'easeOutQuart'
-          }
-        },
-      });
-    }
-    return () => chartInstance.current?.destroy();
-  }, [chartData, isLoading]);
-
   if (isLoading) return <div className="text-gray-400 text-center py-12 font-bold">Loading chart data...</div>;
 
   return (
     <div className="rounded-2xl bg-gray-800 shadow-[8px_8px_16px_#111827,-8px_-8px_16px_#374151] border-none p-8 h-full flex flex-col">
       <h2 className="text-2xl font-bold text-gray-100 mb-6">Top selling Product in each category</h2>
       <div className="relative flex-1 w-full min-h-100">
-        <canvas ref={chartRef}></canvas>
+        <ReactApexChart options={chartData.options} series={chartData.series} type="bar" height="100%" />
       </div>
     </div>
   );

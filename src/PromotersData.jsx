@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
 
-const Dashboard = () => {
+const PromotersData = () => {
   const { filteredSales, isLoading } = useOutletContext();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -129,4 +129,4 @@ const Dashboard = () => {
   )
 }
 
-export default Dashboard
+export default PromotersData;
