@@ -14,12 +14,7 @@ const StoreSales = () => {
 
   const chartData = useMemo(() => {
     const labels = Object.keys(salesByStore);
-    const colors = labels.map(label => {
-      const lowerLabel = label.toLowerCase();
-      if (lowerLabel.includes('boat')) return 'rgba(239, 68, 68, 0.8)';
-      if (lowerLabel.includes('realme')) return 'rgba(234, 179, 8, 0.8)';
-      return 'rgba(156, 163, 175, 0.8)';
-    });
+    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316'];
 
     return {
       series: [{

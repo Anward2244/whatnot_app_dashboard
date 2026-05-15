@@ -8,49 +8,140 @@ const Dashboard = () => {
   const [selectedMonth, setSelectedMonth]=useState('All');
   const navigate = useNavigate();
 
-  const topCategory = useMemo(() => {
-    const counts = {};
+  const categoryData = useMemo(() => {
+    const grouped = {};
     filteredSales.forEach(item => {
-      const cat = item.categoryName || item.category?.name || item.category || 'Unknown';
-      counts[cat] = (counts[cat] || 0) + Number(item.quantity ?? item.totalSold ?? item.sold ?? 0);
+      const category = item.categoryName || item.category?.name || item.category || 'Unknown';
+      const product = item.productName || item.product?.name || item.product || 'Unknown Product';
+      const sold = Number(item.quantity ?? item.totalSold ?? item.sold ?? 0);
+
+      if (!grouped[category]) grouped[category] = {};
+      if (!grouped[category][product]) grouped[category][product] = 0;
+      grouped[category][product] += sold;
     });
-    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-    return sorted.length > 0 ? `${sorted[0][0]} (${sorted[0][1]} sold)` : 'N/A';
+
+    const highestPerCategory = Object.keys(grouped).map(category => {
+      const products = grouped[category];
+      let maxProduct = '';
+      let maxSold = -1;
+      Object.keys(products).forEach(product => {
+        if (products[product] > maxSold) {
+          maxSold = products[product];
+          maxProduct = product;
+        }
+      });
+      return { category, product: maxProduct, sold: maxSold };
+    });
+
+    const sorted = highestPerCategory.sort((a, b) => b.sold - a.sold);
+    const top5 = sorted.slice(0, 5);
+    
+    return {
+      labels: top5.map(s => [s.category, s.product]),
+      series: [{ name: 'Units Sold (Top Product)', data: top5.map(s => s.sold) }]
+    };
   }, [filteredSales]);
 
-  const topBrand = useMemo(() => {
+  const brandData = useMemo(() => {
     const counts = {};
     filteredSales.forEach(item => {
       const brand = item.brandName || item.brand?.name || item.brand || 'Unknown';
       counts[brand] = (counts[brand] || 0) + Number(item.quantity ?? item.totalSold ?? item.sold ?? 0);
     });
     const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-    return sorted.length > 0 ? `${sorted[0][0]} (${sorted[0][1]} sold)` : 'N/A';
+    const top5 = sorted.slice(0, 5);
+    return {
+      labels: top5.map(s => s[0]),
+      series: top5.map(s => s[1])
+    };
   }, [filteredSales]);
 
-  const topStore = useMemo(() => {
+  const storeData = useMemo(() => {
     const counts = {};
     filteredSales.forEach(item => {
       const store = item.promoter?.storeName || item.storeName || item.store?.name || item.store || 'Unknown';
       counts[store] = (counts[store] || 0) + Number(item.quantity ?? item.totalSold ?? item.sold ?? 0);
     });
     const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-    return sorted.length > 0 ? `${sorted[0][0]} (${sorted[0][1]} sold)` : 'N/A';
+    const top5 = sorted.slice(0, 5);
+    return {
+      labels: top5.map(s => s[0]),
+      series: top5.map(s => s[1])
+    };
   }, [filteredSales]);
 
-  const topProduct = useMemo(() => {
+  const productData = useMemo(() => {
     const counts = {};
     filteredSales.forEach(item => {
       const product = item.productName || item.product?.name || item.product || 'Unknown';
       counts[product] = (counts[product] || 0) + Number(item.quantity ?? item.totalSold ?? item.sold ?? 0);
     });
     const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-    return sorted.length > 0 ? `${sorted[0][0]} (${sorted[0][1]} sold)` : 'N/A';
+    const top5 = sorted.slice(0, 5);
+    return {
+      labels: top5.map(s => s[0]),
+      series: [{ name: 'Units Sold', data: top5.map(s => s[1]) }]
+    };
   }, [filteredSales]);
 
-  const totalSales = useMemo(() => {
-    return filteredSales.reduce((acc, item) => acc + Number(item.quantity ?? item.totalSold ?? item.sold ?? 0), 0);
-  }, [filteredSales]);
+  const getBarOptions = useMemo(() => {
+    return (categories) => ({
+      chart: { type: 'bar', toolbar: { show: false }, background: 'transparent' },
+      colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+      plotOptions: {
+        bar: {
+          horizontal: true,
+          distributed: true,
+          borderRadius: 4,
+          barHeight: '60%'
+        }
+      },
+      dataLabels: { enabled: false },
+      legend: { show: false },
+      xaxis: {
+        categories,
+        labels: { style: { colors: '#9ca3af' } },
+        axisBorder: { show: false },
+        axisTicks: { show: false }
+      },
+      yaxis: {
+        labels: {
+          style: { colors: '#9ca3af' },
+          maxWidth: 120,
+        }
+      },
+      grid: {
+        borderColor: 'rgba(255, 255, 255, 0.05)',
+        xaxis: { lines: { show: true } },
+        yaxis: { lines: { show: false } }
+      },
+      tooltip: { theme: 'dark' }
+    });
+  }, []);
+
+  const getDonutOptions = useMemo(() => {
+    return (labels) => ({
+      chart: { type: 'donut', toolbar: { show: false }, background: 'transparent' },
+      colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+      labels,
+      dataLabels: { enabled: true, dropShadow: { enabled: false } },
+      legend: { show: true, position: 'bottom', labels: { colors: '#9ca3af' } },
+      stroke: { show: true, colors: ['#1f2937'] },
+      tooltip: { theme: 'dark' }
+    });
+  }, []);
+
+  const getPieOptions = useMemo(() => {
+    return (labels) => ({
+      chart: { type: 'pie', toolbar: { show: false }, background: 'transparent' },
+      colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+      labels,
+      dataLabels: { enabled: true, dropShadow: { enabled: false } },
+      legend: { show: true, position: 'bottom', labels: { colors: '#9ca3af' } },
+      stroke: { show: true, colors: ['#1f2937'] },
+      tooltip: { theme: 'dark' }
+    });
+  }, []);
 
   const { labels, salesData, promotersData } = useMemo(() => {
     // Helper to get consistent YYYY-MM keys for sorting
@@ -176,52 +267,56 @@ const Dashboard = () => {
   if (isLoading) return <div className="text-gray-400 text-center py-12 font-bold">Loading dashboard...</div>;
 
   return (
-    <div className="flex flex-col gap-6 h-full">
+    <div className="flex flex-col gap-6 pb-6">
       <h1 className="text-3xl font-bold text-gray-100">Overview Dashboard</h1>
       
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-        <div 
-          onClick={() => navigate('/promoters-sales')}
-          className="cursor-pointer bg-gray-800 rounded-2xl p-6 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151] transition-all"
-        >
-          <h3 className="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Category Sales</h3>
-          <p className="text-lg font-semibold text-gray-100 truncate" title={`Top: ${topCategory}`}>Top: {topCategory}</p>
-        </div>
-        <div 
-          onClick={() => navigate('/brand-sales')}
-          className="cursor-pointer bg-gray-800 rounded-2xl p-6 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151] transition-all"
-        >
-          <h3 className="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Brand Sales</h3>
-          <p className="text-lg font-semibold text-gray-100 truncate" title={`Top: ${topBrand}`}>Top: {topBrand}</p>
-        </div>
-        <div 
-          onClick={() => navigate('/store-sales')}
-          className="cursor-pointer bg-gray-800 rounded-2xl p-6 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151] transition-all"
-        >
-          <h3 className="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Store Sales</h3>
-          <p className="text-lg font-semibold text-gray-100 truncate" title={`Top: ${topStore}`}>Top: {topStore}</p>
-        </div>
-        <div 
-          onClick={() => navigate('/product-sales')}
-          className="cursor-pointer bg-gray-800 rounded-2xl p-6 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151] transition-all"
-        >
-          <h3 className="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Product Sales</h3>
-          <p className="text-lg font-semibold text-gray-100 truncate" title={`Top: ${topProduct}`}>Top: {topProduct}</p>
-        </div>
-        <div 
-          onClick={() => navigate('/promoters')}
-          className="cursor-pointer bg-gray-800 rounded-2xl p-6 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151] transition-all"
-        >
-          <h3 className="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Sales Report</h3>
-          <p className="text-lg font-semibold text-gray-100 truncate" title={`Total Units Sold: ${totalSales}`}>Total Units: {totalSales}</p>
+      <div className="rounded-2xl bg-gray-800 shadow-[8px_8px_16px_#111827,-8px_-8px_16px_#374151] border-none p-8 flex flex-col min-h-100">
+        <h2 className="text-2xl font-bold text-gray-100 mb-6">Promoters Registered vs Sales</h2>
+        <div className="relative flex-1 w-full h-full min-h-75">
+          <ReactApexChart options={chartData.options} series={chartData.series} type="line" height="100%" />
         </div>
       </div>
 
-      <div className="rounded-2xl bg-gray-800 shadow-[8px_8px_16px_#111827,-8px_-8px_16px_#374151] border-none p-8 h-full flex flex-col min-h-125">
-        <h2 className="text-2xl font-bold text-gray-100 mb-6">Promoters Registered vs Sales (Monthly)</h2>
-        <div className="relative flex-1 w-full h-full">
-          <ReactApexChart options={chartData.options} series={chartData.series} type="line" height="100%" />
+      {/* Breakdown Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div 
+          onClick={() => navigate('/promoters-sales')}
+          className="cursor-pointer bg-gray-800 rounded-2xl p-6 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151] transition-all flex flex-col min-h-75"
+        >
+          <h3 className="text-lg font-bold text-gray-100 mb-4">Top Product in each Category</h3>
+          <div className="flex-1 w-full relative min-h-50">
+             <ReactApexChart options={getBarOptions(categoryData.labels)} series={categoryData.series} type="bar" height="100%" />
+          </div>
+        </div>
+
+        <div 
+          onClick={() => navigate('/brand-sales')}
+          className="cursor-pointer bg-gray-800 rounded-2xl p-6 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151] transition-all flex flex-col min-h-75"
+        >
+          <h3 className="text-lg font-bold text-gray-100 mb-4">Top 5 Brands</h3>
+          <div className="flex-1 w-full relative min-h-50">
+             <ReactApexChart options={getDonutOptions(brandData.labels)} series={brandData.series} type="donut" height="100%" />
+          </div>
+        </div>
+
+        <div 
+          onClick={() => navigate('/store-sales')}
+          className="cursor-pointer bg-gray-800 rounded-2xl p-6 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151] transition-all flex flex-col min-h-75"
+        >
+          <h3 className="text-lg font-bold text-gray-100 mb-4">Top 5 Stores</h3>
+          <div className="flex-1 w-full relative min-h-50">
+             <ReactApexChart options={getPieOptions(storeData.labels)} series={storeData.series} type="pie" height="100%" />
+          </div>
+        </div>
+
+        <div 
+          onClick={() => navigate('/product-sales')}
+          className="cursor-pointer bg-gray-800 rounded-2xl p-6 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151] transition-all flex flex-col min-h-75"
+        >
+          <h3 className="text-lg font-bold text-gray-100 mb-4">Top 5 Products</h3>
+          <div className="flex-1 w-full relative min-h-50">
+             <ReactApexChart options={getBarOptions(productData.labels)} series={productData.series} type="bar" height="100%" />
+          </div>
         </div>
       </div>
     </div>

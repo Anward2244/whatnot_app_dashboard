@@ -7,6 +7,7 @@ const CategorySales = () => {
 
   const categoryProductSales = useMemo(() => {
     const grouped = {};
+    console.log(filteredSales)
     filteredSales.forEach(item => {
       const category = item.categoryName || item.category?.name || item.category || 'Unknown Category';
       const product = item.productName || item.product?.name || item.product || 'Unknown Product';
@@ -35,6 +36,8 @@ const CategorySales = () => {
     });
     return highestPerCategory;
   }, [filteredSales]);
+
+  console.log(categoryProductSales)
 
   const chartData = useMemo(() => {
     const labels = Object.keys(categoryProductSales).map(cat => [cat, categoryProductSales[cat].product]);
@@ -92,7 +95,7 @@ const CategorySales = () => {
     };
   }, [categoryProductSales]);
 
-  console.log(filteredSales)
+  // console.log(filteredSales)
   
   if (isLoading) return <div className="text-gray-400 text-center py-12 font-bold">Loading chart data...</div>;
 

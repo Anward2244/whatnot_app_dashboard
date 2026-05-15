@@ -12,7 +12,7 @@ const PromotersData = () => {
     return filteredSales.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredSales, currentPage, itemsPerPage]);
 
-  console.log(currentSales)
+  // console.log(currentSales)
   
   return (
     <div className="font-sans text-gray-300 h-full">
