@@ -233,7 +233,7 @@ const Dashboard = () => {
             zoomed: (chartContext, { xaxis }) => {
               if (!xaxis || xaxis.min === undefined || xaxis.max === undefined) return;
               const rangeInMs = xaxis.max - xaxis.min;
-              const threeMonthsInMs = 90 * 24 * 60 * 60 * 1000;
+              const threeMonthsInMs = 30 * 24 * 60 * 60 * 1000;
               
               if (rangeInMs > 0 && rangeInMs < threeMonthsInMs && !isDaily) {
                 setChartConfig({
