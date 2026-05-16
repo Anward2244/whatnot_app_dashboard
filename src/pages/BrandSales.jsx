@@ -60,7 +60,9 @@ const BrandSales = () => {
           xaxis: { lines: { show: false } },
           yaxis: { lines: { show: true } }
         },
-        tooltip: { theme: 'dark' }
+        tooltip: { 
+          theme: 'dark'
+        }
       }
     };
   }, [salesByBrand]);

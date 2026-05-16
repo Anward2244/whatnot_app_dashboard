@@ -216,12 +216,12 @@ const Layout = () => {
               className="rounded-xl border-none bg-gray-800 text-gray-200 placeholder-gray-500 shadow-[inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151] focus:outline-none text-xs px-4 py-2.5 w-full transition-all"
             />
           </div>
-          {/* <button
+          <button
             onClick={handleLogout}
             className="text-sm font-bold text-red-400 bg-gray-800 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_2px_2px_4px_#111827,inset_-2px_-2px_4px_#374151] px-4 py-2.5 rounded-xl transition-all"
           >
             Logout
-          </button> */}
+          </button>
         </div>
       </div>
 

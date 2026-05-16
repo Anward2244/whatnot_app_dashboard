@@ -54,7 +54,9 @@ const StoreSales = () => {
           xaxis: { lines: { show: true } },
           yaxis: { lines: { show: false } }
         },
-        tooltip: { theme: 'dark' }
+        tooltip: { 
+          theme: 'dark'
+        }
       }
     };
   }, [salesByStore]);

@@ -1,12 +1,27 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import ReactApexChart from 'react-apexcharts';
 
 const Dashboard = () => {
   // Adding `filteredPromoters` (or `promoters` as fallback) from your context
-  const { filteredSales = [], promoters = [], filteredPromoters = promoters, isLoading } = useOutletContext();
+  const { filteredSales = [], promoters = [], filteredPromoters = promoters, isLoading, refetch } = useOutletContext();
   const [selectedMonth, setSelectedMonth]=useState('All');
+  const [chartConfig, setChartConfig] = useState({
+    granularity: 'daily',
+    range: null,
+  });
   const navigate = useNavigate();
+
+  // Poll for new data every 5 seconds if a `refetch` function is provided in the context
+  useEffect(() => {
+    if (typeof refetch === 'function') {
+      const intervalId = setInterval(() => {
+        refetch(); // Automatically trigger a background data refresh
+      }, 5000); // 5000ms = 5 seconds
+      
+      return () => clearInterval(intervalId); // Cleanup interval on unmount
+    }
+  }, [refetch]);
 
   const categoryData = useMemo(() => {
     const grouped = {};
@@ -115,7 +130,14 @@ const Dashboard = () => {
         xaxis: { lines: { show: true } },
         yaxis: { lines: { show: false } }
       },
-      tooltip: { theme: 'dark' }
+      tooltip: { 
+        theme: 'dark',
+        x: {
+          formatter: function(val) {
+            return Array.isArray(val) ? val.join(' - ') : val;
+          }
+        }
+      }
     });
   }, []);
 
@@ -127,7 +149,9 @@ const Dashboard = () => {
       dataLabels: { enabled: true, dropShadow: { enabled: false } },
       legend: { show: true, position: 'bottom', labels: { colors: '#9ca3af' } },
       stroke: { show: true, colors: ['#1f2937'] },
-      tooltip: { theme: 'dark' }
+      tooltip: { 
+        theme: 'dark'
+      }
     });
   }, []);
 
@@ -139,73 +163,110 @@ const Dashboard = () => {
       dataLabels: { enabled: true, dropShadow: { enabled: false } },
       legend: { show: true, position: 'bottom', labels: { colors: '#9ca3af' } },
       stroke: { show: true, colors: ['#1f2937'] },
-      tooltip: { theme: 'dark' }
+      tooltip: { 
+        theme: 'dark'
+      }
     });
   }, []);
 
-  const { labels, salesData, promotersData } = useMemo(() => {
-    // Helper to get consistent YYYY-MM keys for sorting
-    const getMonthKey = (dateStr) => {
+  const { salesData, promotersData } = useMemo(() => {
+    const getLocalKey = (dateStr, isDaily) => {
       let d = dateStr ? new Date(dateStr) : new Date();
       if (isNaN(d.getTime())) d = new Date(); // fallback for invalid dates
       const year = d.getFullYear();
       const month = String(d.getMonth() + 1).padStart(2, '0');
-      return `${year}-${month}`;
+      if (isDaily) {
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+      return `${year}-${month}-01`;
     };
 
-    // Helper to format keys back to 'Jan 2026' style
-    const formatMonthKey = (key) => {
-      const [year, month] = key.split('-');
-      const d = new Date(year, month - 1);
-      return d.toLocaleString('default', { month: 'short', year: 'numeric' });
-    };
+    const isDaily = chartConfig.granularity === 'daily';
 
-    const salesByMonth = {};
+    const salesMap = {};
     filteredSales.forEach(item => {
-      const key = getMonthKey(item.date || item.createdAt || item.saleDate || item.timestamp);
+      const key = getLocalKey(item.date || item.createdAt || item.saleDate || item.timestamp, isDaily);
       const sold = Number(item.quantity ?? item.totalSold ?? item.sold ?? 0);
-      salesByMonth[key] = (salesByMonth[key] || 0) + sold;
+      salesMap[key] = (salesMap[key] || 0) + sold;
     });
 
-    const promotersByMonth = {};
+    const promotersMap = {};
     filteredPromoters.forEach(item => {
-      const key = getMonthKey(item.logCreatedDate || item.joinDate || item.registeredAt || item.timestamp);
-      promotersByMonth[key] = (promotersByMonth[key] || 0) + 1;
+      const key = getLocalKey(item.logCreatedDate || item.joinDate || item.registeredAt || item.timestamp, isDaily);
+      promotersMap[key] = (promotersMap[key] || 0) + 1;
     });
 
-    // Extract all unique month-year keys, sort them chronologically
-    const sortedKeys = Array.from(new Set([...Object.keys(salesByMonth), ...Object.keys(promotersByMonth)])).sort();
+    const sortedKeys = Array.from(new Set([...Object.keys(salesMap), ...Object.keys(promotersMap)])).sort();
     
     return {
-      labels: sortedKeys.map(formatMonthKey),
-      salesData: sortedKeys.map(k => salesByMonth[k] || 0),
-      promotersData: sortedKeys.map(k => promotersByMonth[k] || 0)
+      salesData: sortedKeys.map(k => {
+        const [year, month, day] = k.split('-');
+        return [new Date(year, month - 1, day).getTime(), salesMap[k] || 0];
+      }),
+      promotersData: sortedKeys.map(k => {
+        const [year, month, day] = k.split('-');
+        return [new Date(year, month - 1, day).getTime(), promotersMap[k] || 0];
+      })
     };
-  }, [filteredSales, filteredPromoters]);
+  }, [filteredSales, filteredPromoters, chartConfig.granularity]);
 
   const chartData = useMemo(() => {
-    return {
-      series: [
-        {
-          name: 'Total Sales',
-          type: 'column',
-          data: salesData
-        },
-        {
-          name: 'Promoters Registered',
-          type: 'line',
-          data: promotersData
-        }
-      ],
-      options: {
+    const isDaily = chartConfig.granularity === 'daily';
+
+    let minX = chartConfig.range ? chartConfig.range.min : undefined;
+    let maxX = chartConfig.range ? chartConfig.range.max : undefined;
+
+    // By default, display latest two months (approx 60 days) of daily data
+    if (isDaily && !chartConfig.range && salesData.length > 0) {
+      const maxTs = salesData[salesData.length - 1][0];
+      maxX = maxTs;
+      minX = maxTs - (30 * 24 * 60 * 60 * 1000);
+    }
+
+    const options = {
         chart: {
-          type: 'line', // Mixed charts require base type to be "line"
-          toolbar: { show: false },
-          background: 'transparent'
+          type: 'line',
+          toolbar: { show: false, tools: { download: false } },
+          background: 'transparent',
+          events: {
+            zoomed: (chartContext, { xaxis }) => {
+              if (!xaxis || xaxis.min === undefined || xaxis.max === undefined) return;
+              const rangeInMs = xaxis.max - xaxis.min;
+              const threeMonthsInMs = 90 * 24 * 60 * 60 * 1000;
+              
+              if (rangeInMs > 0 && rangeInMs < threeMonthsInMs && !isDaily) {
+                setChartConfig({
+                  granularity: 'daily',
+                  range: { min: xaxis.min, max: xaxis.max },
+                });
+              } else if (rangeInMs > 0 && rangeInMs >= threeMonthsInMs && isDaily) {
+                setChartConfig({
+                  granularity: 'monthly',
+                  range: { min: xaxis.min, max: xaxis.max },
+                });
+              } else {
+                 setChartConfig(prev => ({
+                   ...prev,
+                   range: { min: xaxis.min, max: xaxis.max }
+                 }));
+              }
+            },
+            scrolled: (chartContext, { xaxis }) => {
+              if (!xaxis || xaxis.min === undefined || xaxis.max === undefined) return;
+              setChartConfig(prev => ({
+                ...prev,
+                range: { min: xaxis.min, max: xaxis.max }
+              }));
+            },
+            beforeResetZoom: () => {
+              setChartConfig({ granularity: 'monthly', range: null });
+            },
+          },
         },
-        colors: ['rgba(249, 115, 22, 0.8)', '#3b82f6'], // Orange for sales, Blue for promoters
+        colors: ['rgba(249, 115, 22, 0.8)', '#3b82f6'],
         stroke: {
-          width: [0, 4], // 0 width for column, 4 for the line
+          width: [0, 4],
           curve: 'smooth'
         },
         plotOptions: {
@@ -220,8 +281,14 @@ const Dashboard = () => {
           labels: { colors: '#9ca3af' }
         },
         xaxis: {
-          categories: labels,
-          labels: { style: { colors: '#9ca3af' } },
+          type: 'datetime',
+          min: minX,
+          max: maxX,
+          labels: { 
+             style: { colors: '#9ca3af' },
+             datetimeUTC: false,
+             format: isDaily ? 'dd MMM yyyy' : 'MMM yyyy'
+          },
           axisBorder: { show: false },
           axisTicks: { show: false }
         },
@@ -233,7 +300,7 @@ const Dashboard = () => {
             axisTicks: { show: false }
           },
           {
-            opposite: true, // Second scale on the right
+            opposite: true,
             title: { text: 'Promoters Registered', style: { color: '#3b82f6' } },
             labels: { style: { colors: '#9ca3af' } },
             axisBorder: { show: false },
@@ -248,21 +315,54 @@ const Dashboard = () => {
         tooltip: { 
           theme: 'dark',
           shared: true,
-          intersect: false
+          intersect: false,
+          x: {
+            format: isDaily ? 'dd MMM yyyy' : 'MMM yyyy'
+          }
         },
         responsive: [
           {
             breakpoint: 768,
             options: {
               xaxis: {
-                range: selectedMonth === 'All' ? 6 : 10
               }
             }
           }
         ]
-      }
     };
-  }, [labels, salesData, promotersData, selectedMonth]);
+
+    return {
+      series: [
+        {
+          name: 'Total Sales',
+          type: 'column',
+          data: salesData
+        },
+        {
+          name: 'Promoters Registered',
+          type: 'line',
+          data: promotersData
+        }
+      ],
+      options
+    };
+  }, [salesData, promotersData, chartConfig]);
+
+  const todaysSales = useMemo(() => {
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    return filteredSales.filter(item => {
+      let d = item.date || item.createdAt || item.saleDate || item.timestamp ? new Date(item.date || item.createdAt || item.saleDate || item.timestamp) : new Date();
+      if (isNaN(d.getTime())) d = new Date();
+      const itemDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      return itemDateStr === todayStr;
+    }).sort((a, b) => {
+      let da = a.date || a.createdAt || a.saleDate || a.timestamp ? new Date(a.date || a.createdAt || a.saleDate || a.timestamp) : new Date(0);
+      let db = b.date || b.createdAt || b.saleDate || b.timestamp ? new Date(b.date || b.createdAt || b.saleDate || b.timestamp) : new Date(0);
+      return db - da; // sort descending by time
+    });
+  }, [filteredSales]);
 
   if (isLoading) return <div className="text-gray-400 text-center py-12 font-bold">Loading dashboard...</div>;
 
@@ -270,7 +370,7 @@ const Dashboard = () => {
     <div className="flex flex-col gap-6 pb-6">
       <h1 className="text-3xl font-bold text-gray-100">Overview Dashboard</h1>
       
-      <div className="rounded-2xl bg-gray-800 shadow-[8px_8px_16px_#111827,-8px_-8px_16px_#374151] border-none p-8 flex flex-col min-h-100">
+      <div className="rounded-2xl bg-gray-800 shadow-[8px_8px_16px_#111827,-8px_-8px_16px_#374151] border-none p-8 flex flex-col min-h-130">
         <h2 className="text-2xl font-bold text-gray-100 mb-6">Promoters Registered vs Sales</h2>
         <div className="relative flex-1 w-full h-full min-h-75">
           <ReactApexChart options={chartData.options} series={chartData.series} type="line" height="100%" />
@@ -317,6 +417,52 @@ const Dashboard = () => {
           <div className="flex-1 w-full relative min-h-50">
              <ReactApexChart options={getBarOptions(productData.labels)} series={productData.series} type="bar" height="100%" />
           </div>
+        </div>
+      </div>
+
+      {/* Daily Sales Table */}
+      <div className="rounded-2xl bg-gray-800 shadow-[8px_8px_16px_#111827,-8px_-8px_16px_#374151] border-none p-8 flex flex-col">
+        <h2 className="text-2xl font-bold text-gray-100 mb-6">Today's Sales</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-gray-700 text-gray-400">
+                <th className="py-3 px-4 font-semibold">Time</th>
+                <th className="py-3 px-4 font-semibold">Store</th>
+                <th className="py-3 px-4 font-semibold">Category</th>
+                <th className="py-3 px-4 font-semibold">Product</th>
+                <th className="py-3 px-4 font-semibold">Quantity</th>
+              </tr>
+            </thead>
+            <tbody>
+              {todaysSales.length > 0 ? (
+                todaysSales.map((sale, index) => {
+                  // console.log(sale)
+                  const category = sale.categoryName;
+                  const store = sale.promoter?.storeName || sale.storeName || sale.store?.name || sale.store || 'Unknown';
+                  const product = sale.productName || sale.product?.name || sale.product || 'Unknown Product';
+                  const sold = Number(sale.quantity ?? sale.totalSold ?? sale.sold ?? 0);
+                  let d = sale.date || sale.createdAt || sale.saleDate || sale.timestamp ? new Date(sale.date || sale.createdAt || sale.saleDate || sale.timestamp) : new Date();
+                  if (isNaN(d.getTime())) d = new Date();
+                  const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                  return (
+                    <tr key={sale.id || index} className="border-b border-gray-700/50 text-gray-200 hover:bg-gray-700/20 transition-colors">
+                      <td className="py-3 px-4">{time}</td>
+                      <td className="py-3 px-4">{store}</td>
+                      <td className='py-3 px-4'>{category}</td>
+                      <td className="py-3 px-4">{product}</td>
+                      <td className="py-3 px-4">{sold}</td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan="4" className="py-6 text-center text-gray-400">No sales recorded today yet.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

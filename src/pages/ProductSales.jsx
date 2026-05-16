@@ -90,7 +90,9 @@ const ProductSales = () => {
           xaxis: { lines: { show: true } },
           yaxis: { lines: { show: false } }
         },
-        tooltip: { theme: 'dark' }
+        tooltip: { 
+          theme: 'dark'
+        }
       }
     };
   }, [salesByProduct, productBrands]);

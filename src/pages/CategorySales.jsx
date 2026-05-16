@@ -72,7 +72,7 @@ const CategorySales = () => {
             barHeight: '60%'
           }
         },
-        dataLabels: { enabled: false },
+        dataLabels: { enabled: true },
         legend: { show: false },
         xaxis: {
           categories: labels,
@@ -90,7 +90,14 @@ const CategorySales = () => {
           xaxis: { lines: { show: true } },
           yaxis: { lines: { show: false } }
         },
-        tooltip: { theme: 'dark' }
+        tooltip: { 
+          theme: 'dark',
+          x: {
+            formatter: function(val) {
+              return Array.isArray(val) ? val.join(' - ') : val;
+            }
+          }
+        }
       }
     };
   }, [categoryProductSales]);
