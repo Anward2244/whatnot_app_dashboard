@@ -43,7 +43,10 @@ const ProductSales = () => {
   }, [filteredSales]);
 
   const chartData = useMemo(() => {
-    const labels = Object.keys(salesByProduct);
+    const sortedSales = Object.entries(salesByProduct).sort((a, b) => b[1] - a[1]);
+    const labels = sortedSales.map(item => item[0]);
+    const data = sortedSales.map(item => item[1]);
+
     const colors = labels.map(label => {
       const brand = (productBrands[label] || '').toLowerCase();
       const productLower = label.toLowerCase();
@@ -55,7 +58,7 @@ const ProductSales = () => {
     return {
       series: [{
         name: 'Total Units Sold',
-        data: Object.values(salesByProduct)
+        data
       }],
       options: {
         chart: {
@@ -69,7 +72,7 @@ const ProductSales = () => {
             horizontal: true,
             distributed: true,
             borderRadius: 6,
-            barHeight: '60%'
+            barHeight: '70%'
           }
         },
         dataLabels: { enabled: false },
@@ -127,8 +130,8 @@ const ProductSales = () => {
           </button>
         ))}
       </div>
-      <div className="relative flex-1 w-full min-h-100">
-        <ReactApexChart options={chartData.options} series={chartData.series} type="bar" height="100%" />
+      <div className="relative flex-1 w-full min-h-100 overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-track]:shadow-[inset_2px_2px_5px_#111827,inset_-2px_-2px_5px_#374151] [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500">
+        <ReactApexChart options={chartData.options} series={chartData.series} type="bar" height={Math.max(400, chartData.series[0].data.length * 45)} />
       </div>
     </div>
   );
