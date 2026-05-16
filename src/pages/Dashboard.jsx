@@ -269,6 +269,19 @@ const Dashboard = () => {
           width: [0, 4],
           curve: 'smooth'
         },
+        fill: {
+          type: ['solid', 'gradient'],
+          gradient: {
+            shade: 'dark',
+            type: 'vertical',
+            shadeIntensity: 0.5,
+            gradientToColors: ['#3b82f6'],
+            inverseColors: false,
+            opacityFrom: 0.5,
+            opacityTo: 0.05,
+            stops: [0, 100]
+          }
+        },
         plotOptions: {
           bar: {
             borderRadius: 6,
@@ -340,7 +353,7 @@ const Dashboard = () => {
         },
         {
           name: 'Promoters Registered',
-          type: 'line',
+          type: 'area',
           data: promotersData
         }
       ],
