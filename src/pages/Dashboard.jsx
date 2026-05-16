@@ -16,7 +16,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (typeof refetch === 'function') {
       const intervalId = setInterval(() => {
-        refetch(); // Automatically trigger a background data refresh
+        refetch(true); // Automatically trigger a background data refresh without loading indicator
       }, 5000); // 5000ms = 5 seconds
       
       return () => clearInterval(intervalId); // Cleanup interval on unmount

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -16,39 +16,45 @@ const Layout = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        const token = localStorage.getItem('token');
-        if (!token) {
-          navigate('/login');
-          return;
-        }
-        
-        const [salesResponse, promotersResponse] = await Promise.all([
-          axios.post(URLS.GetAllSales, {}, {
-            headers: { Authorization: `Bearer ${token}` }
-          }),
-          axios.post(URLS.GetAllPromoters, {}, {
-            headers: { Authorization: `Bearer ${token}` }
-          })
-        ]);
-
-        const sData = salesResponse.data?.data || salesResponse.data;
-        setSalesData(Array.isArray(sData) ? sData : []);
-
-        const pData = promotersResponse.data?.promoters || promotersResponse.data?.data || promotersResponse.data || [];
-        setPromotersData(Array.isArray(pData) ? pData : []);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setIsLoading(false);
+  const fetchData = useCallback(async (isBackground = false) => {
+    try {
+      if (!isBackground) setIsLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
       }
-    };
+      
+      const [salesResponse, promotersResponse] = await Promise.all([
+        axios.post(URLS.GetAllSales, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.post(URLS.GetAllPromoters, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ]);
 
-    fetchData();
+      const sData = salesResponse.data?.data || salesResponse.data;
+      const newSalesData = Array.isArray(sData) ? sData : [];
+      setSalesData(prev => 
+        JSON.stringify(prev) === JSON.stringify(newSalesData) ? prev : newSalesData
+      );
+
+      const pData = promotersResponse.data?.promoters || promotersResponse.data?.data || promotersResponse.data || [];
+      const newPromotersData = Array.isArray(pData) ? pData : [];
+      setPromotersData(prev => 
+        JSON.stringify(prev) === JSON.stringify(newPromotersData) ? prev : newPromotersData
+      );
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      if (!isBackground) setIsLoading(false);
+    }
   }, [navigate]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   useEffect(() => {
     setIsSidebarOpen(false);
@@ -238,7 +244,7 @@ const Layout = () => {
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-8 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-track]:shadow-[inset_2px_2px_5px_#111827,inset_-2px_-2px_5px_#374151] [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500">
-          <Outlet context={{ filteredSales, filteredPromoters, isLoading }} />
+          <Outlet context={{ filteredSales, filteredPromoters, isLoading, refetch: fetchData }} />
         </main>
       </div>
       </div>
