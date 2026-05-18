@@ -56,7 +56,20 @@ const StoreSales = () => {
         },
         tooltip: { 
           theme: 'dark'
-        }
+        },
+        responsive: [
+          {
+            breakpoint: 768,
+            options: {
+              yaxis: {
+                labels: { maxWidth: 100, style: { fontSize: '10px' } }
+              },
+              xaxis: {
+                labels: { style: { fontSize: '10px' } }
+              }
+            }
+          }
+        ]
       }
     };
   }, [salesByStore]);

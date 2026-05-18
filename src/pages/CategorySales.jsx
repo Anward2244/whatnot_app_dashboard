@@ -97,7 +97,20 @@ const CategorySales = () => {
               return Array.isArray(val) ? val.join(' - ') : val;
             }
           }
-        }
+        },
+        responsive: [
+          {
+            breakpoint: 768,
+            options: {
+              yaxis: {
+                labels: { maxWidth: 120, style: { fontSize: '10px' } }
+              },
+              xaxis: {
+                labels: { style: { fontSize: '10px' } }
+              }
+            }
+          }
+        ]
       }
     };
   }, [categoryProductSales]);

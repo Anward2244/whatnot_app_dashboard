@@ -62,7 +62,21 @@ const BrandSales = () => {
         },
         tooltip: { 
           theme: 'dark'
-        }
+        },
+        responsive: [
+          {
+            breakpoint: 768,
+            options: {
+              xaxis: {
+                labels: { 
+                  rotate: -45,
+                  style: { fontSize: '10px' } 
+                }
+              },
+              yaxis: { labels: { style: { fontSize: '10px' } } }
+            }
+          }
+        ]
       }
     };
   }, [salesByBrand]);

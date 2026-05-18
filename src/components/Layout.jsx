@@ -3,6 +3,14 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import axios from 'axios';
+import {
+  IoGridOutline,
+  IoPricetagOutline,
+  IoSparklesOutline,
+  IoStorefrontOutline,
+  IoCubeOutline,
+  IoDocumentTextOutline
+} from 'react-icons/io5';
 import { URLS } from '../URLs/Urls';
 
 const Layout = () => {
@@ -15,6 +23,7 @@ const Layout = () => {
   const [promotersData, setPromotersData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const fetchData = useCallback(async (isBackground = false) => {
     try {
@@ -106,12 +115,12 @@ const Layout = () => {
   };
 
   const navItems = [
-    { name: 'Dashboard', path: '/' },
-    { name: 'Category Sales', path: '/promoters-sales' },
-    { name: 'Brands', path: '/brand-sales' },
-    { name: 'Store Sales', path: '/store-sales' },
-    { name: 'Product Sales', path: '/product-sales' },
-    { name: 'Sales Report', path: '/promoters' },
+    { name: 'Dashboard', path: '/', icon: <IoGridOutline className="w-5 h-5" /> },
+    { name: 'Category Sales', path: '/promoters-sales', icon: <IoPricetagOutline className="w-5 h-5" /> },
+    { name: 'Brands', path: '/brand-sales', icon: <IoSparklesOutline className="w-5 h-5" /> },
+    { name: 'Store Sales', path: '/store-sales', icon: <IoStorefrontOutline className="w-5 h-5" /> },
+    { name: 'Product Sales', path: '/product-sales', icon: <IoCubeOutline className="w-5 h-5" /> },
+    { name: 'Sales Report', path: '/promoters', icon: <IoDocumentTextOutline className="w-5 h-5" /> },
   ];
 
   return (
@@ -190,26 +199,42 @@ const Layout = () => {
         onClick={() => setIsSidebarOpen(false)}
       />
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 w-64 bg-gray-800 md:bg-gray-800 flex flex-col shadow-[6px_0_12px_#111827] z-30 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}>
-        <div className="h-16 flex items-center px-6 mb-4 mt-2">
-          <h1 className="text-xl font-bold text-gray-100">Whatnot Dashboard</h1>
+      <div className={`fixed inset-y-0 left-0 ${isCollapsed ? 'w-20' : 'w-64'} bg-gray-800 md:bg-gray-800 flex flex-col shadow-[6px_0_12px_#111827] z-30 transform transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}>
+        <div className={`h-16 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-4 sm:px-6'} mb-4 mt-2 transition-all duration-300`}>
+          <button 
+            onClick={() => setIsCollapsed(!isCollapsed)} 
+            className="p-2 text-gray-400 hover:text-white hidden md:block focus:outline-none shrink-0 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151]"
+          >
+            {isCollapsed ? (
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+              </svg>
+            ) : (
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+              </svg>
+            )}
+          </button>
+          {!isCollapsed && <h1 className="text-xl font-bold text-gray-100 whitespace-nowrap overflow-hidden mr-2">Dashboard</h1>}
         </div>
         <nav className="flex-1 py-4 space-y-2 overflow-y-auto px-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-track]:shadow-[inset_2px_2px_5px_#111827,inset_-2px_-2px_5px_#374151] [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500">
           {navItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              className={`block px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+              title={isCollapsed ? item.name : undefined}
+              className={`flex items-center ${isCollapsed ? 'justify-center' : 'px-4'} py-3 rounded-xl text-sm font-bold transition-all ${
                 location.pathname === item.path
                   ? 'bg-gray-800 shadow-[inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151] text-orange-500'
                   : 'bg-gray-800 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] text-gray-400 hover:text-orange-400 hover:shadow-[inset_2px_2px_4px_#111827,inset_-2px_-2px_4px_#374151]'
               }`}
             >
-              {item.name}
+              <div className={`${isCollapsed ? '' : 'mr-3'}`}>{item.icon}</div>
+              {!isCollapsed && <span className="whitespace-nowrap">{item.name}</span>}
             </Link>
           ))}
         </nav>
-        <div className="p-4 flex flex-col gap-6 mb-4">
+        <div className={`p-4 flex flex-col gap-6 mb-4 ${isCollapsed ? 'hidden' : ''}`}>
           <div className="flex flex-col gap-2">
             <label htmlFor="dateRange" className="text-sm font-bold text-gray-400">Date Range:</label>
             <DatePicker
@@ -229,6 +254,19 @@ const Layout = () => {
             Logout
           </button>
         </div>
+        {isCollapsed && (
+          <div className="p-4 flex flex-col gap-4 mb-4">
+            <button
+              onClick={handleLogout}
+              title="Logout"
+              className="text-red-400 flex items-center justify-center bg-gray-800 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_2px_2px_4px_#111827,inset_-2px_-2px_4px_#374151] py-3 rounded-xl transition-all"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Main Content */}

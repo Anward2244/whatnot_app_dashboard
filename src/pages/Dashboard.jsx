@@ -137,7 +137,20 @@ const Dashboard = () => {
             return Array.isArray(val) ? val.join(' - ') : val;
           }
         }
-      }
+      },
+      responsive: [
+        {
+          breakpoint: 768,
+          options: {
+            yaxis: {
+              labels: { maxWidth: 100, style: { fontSize: '10px' } }
+            },
+            xaxis: {
+              labels: { style: { fontSize: '10px' } }
+            }
+          }
+        }
+      ]
     });
   }, []);
 
@@ -151,7 +164,15 @@ const Dashboard = () => {
       stroke: { show: true, colors: ['#1f2937'] },
       tooltip: { 
         theme: 'dark'
-      }
+      },
+      responsive: [
+        {
+          breakpoint: 768,
+          options: {
+            legend: { fontSize: '12px' }
+          }
+        }
+      ]
     });
   }, []);
 
@@ -165,7 +186,15 @@ const Dashboard = () => {
       stroke: { show: true, colors: ['#1f2937'] },
       tooltip: { 
         theme: 'dark'
-      }
+      },
+      responsive: [
+        {
+          breakpoint: 768,
+          options: {
+            legend: { fontSize: '12px' }
+          }
+        }
+      ]
     });
   }, []);
 
@@ -338,6 +367,15 @@ const Dashboard = () => {
             breakpoint: 768,
             options: {
               xaxis: {
+                labels: { style: { fontSize: '10px' } }
+              },
+              yaxis: [
+                { labels: { style: { fontSize: '10px' } }, title: { style: { fontSize: '11px' } } },
+                { opposite: true, labels: { style: { fontSize: '10px' } }, title: { style: { fontSize: '11px' } } }
+              ],
+              legend: {
+                position: 'bottom',
+                fontSize: '12px'
               }
             }
           }
@@ -383,7 +421,7 @@ const Dashboard = () => {
     <div className="flex flex-col gap-6 pb-6">
       <h1 className="text-3xl font-bold text-gray-100">Overview Dashboard</h1>
       
-      <div className="rounded-2xl bg-gray-800 shadow-[8px_8px_16px_#111827,-8px_-8px_16px_#374151] border-none p-8 flex flex-col min-h-130">
+      <div className="rounded-2xl bg-gray-800 shadow-[8px_8px_16px_#111827,-8px_-8px_16px_#374151] border-none p-8 flex flex-col min-h-125">
         <h2 className="text-2xl font-bold text-gray-100 mb-6">Promoters Registered vs Sales</h2>
         <div className="relative flex-1 w-full h-full min-h-75">
           <ReactApexChart options={chartData.options} series={chartData.series} type="line" height="100%" />
@@ -427,7 +465,7 @@ const Dashboard = () => {
           className="cursor-pointer bg-gray-800 rounded-2xl p-6 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151] transition-all flex flex-col min-h-75"
         >
           <h3 className="text-lg font-bold text-gray-100 mb-4">Top 5 Products</h3>
-          <div className="flex-1 w-full relative min-h-50">
+          <div className="flex-1 w-full relative min-h-50 overflow-hidden">
              <ReactApexChart options={getBarOptions(productData.labels)} series={productData.series} type="bar" height="100%" />
           </div>
         </div>
