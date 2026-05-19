@@ -92,7 +92,7 @@ const Layout = () => {
   }, [salesData, startDate, endDate]);
 
   const filteredPromoters = useMemo(() => {
-    let result = promotersData;
+    let result = promotersData.filter(promoter => promoter.kycVerified === true || String(promoter.kycVerified).toLowerCase() === 'true');
 
     if (startDate && endDate) {
       const start = new Date(startDate);
@@ -100,7 +100,7 @@ const Layout = () => {
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
 
-      result = promotersData.filter(item => {
+      result = result.filter(item => {
         const itemDate = new Date(item.logCreatedDate || item.joinDate || item.registeredAt || item.timestamp || item.createdAt);
         return itemDate >= start && itemDate <= end;
       });
