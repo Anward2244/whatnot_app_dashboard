@@ -38,7 +38,7 @@ const Promoters = () => {
               ) : currentPromoters.length > 0 ? (
                 <tbody className="divide-y divide-slate-700/50 bg-transparent text-slate-300">
                 {currentPromoters.map((row, index) => {
-                  let d = row.logCreatedDate || row.joinDate || row.registeredAt || row.timestamp || row.createdAt;
+                  let d = row.logCreatedDate;
                   let dateStr = 'N/A';
                   if (d) {
                     const dateObj = new Date(d);

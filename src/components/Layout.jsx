@@ -122,13 +122,13 @@ const Layout = () => {
   };
 
   const navItems = [
-    { name: 'Dashboard', path: '/', icon: <IoGridOutline className="w-5 h-5" /> },
-    { name: 'Category Sales', path: '/category-sales', icon: <IoPricetagOutline className="w-5 h-5" /> },
-    { name: 'Brands', path: '/brand-sales', icon: <IoSparklesOutline className="w-5 h-5" /> },
-    { name: 'Store Sales', path: '/store-sales', icon: <IoStorefrontOutline className="w-5 h-5" /> },
-    { name: 'Product Sales', path: '/product-sales', icon: <IoCubeOutline className="w-5 h-5" /> },
-    { name: 'Sales Report', path: '/sales-report', icon: <IoDocumentTextOutline className="w-5 h-5" /> },
-    { name: 'Promoters', path: '/promoters', icon: <IoCubeOutline className="w-5 h-5" /> }
+    { name: 'Dashboard', path: '/', icon: <IoGridOutline className="w-4 h-4" /> },
+    { name: 'Category Sales', path: '/category-sales', icon: <IoPricetagOutline className="w-4 h-4" /> },
+    { name: 'Brands', path: '/brand-sales', icon: <IoSparklesOutline className="w-4 h-4" /> },
+    { name: 'Store Sales', path: '/store-sales', icon: <IoStorefrontOutline className="w-4 h-4" /> },
+    { name: 'Product Sales', path: '/product-sales', icon: <IoCubeOutline className="w-4 h-4" /> },
+    { name: 'Sales Report', path: '/sales-report', icon: <IoDocumentTextOutline className="w-4 h-4" /> },
+    { name: 'Promoters', path: '/promoters', icon: <IoCubeOutline className="w-4 h-4" /> }
   ];
 
   return (
@@ -207,11 +207,11 @@ const Layout = () => {
         onClick={() => setIsSidebarOpen(false)}
       />
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 ${isCollapsed ? 'w-20' : 'w-58'} bg-gray-800 md:bg-gray-800 flex flex-col shadow-[6px_0_12px_#111827] z-30 transform transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}>
+      <div className={`fixed inset-y-0 left-0 ${isCollapsed ? 'w-20' : 'w-46'} bg-gray-800 md:bg-gray-800 flex flex-col shadow-[6px_0_12px_#111827] z-30 transform transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}>
         <div className={`h-16 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-4 sm:px-6'} mb-4 mt-2 transition-all duration-300`}>
           <button 
             onClick={() => setIsCollapsed(!isCollapsed)} 
-            className="p-2 rounded-2xl text-gray-400 hover:text-white hidden md:block focus:outline-none shrink-0 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151]"
+            className="p-1 rounded-xl text-gray-400 hover:text-white hidden md:block focus:outline-none shrink-0 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151]"
           >
             {isCollapsed ? (
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -223,7 +223,7 @@ const Layout = () => {
               </svg>
             )}
           </button>
-          {!isCollapsed && <h1 className="text-xl font-bold text-gray-100 whitespace-nowrap overflow-hidden mr-2">Dashboard</h1>}
+          {!isCollapsed && <h1 className="text-md font-bold text-gray-100 whitespace-nowrap overflow-hidden mr-2">Dashboard</h1>}
         </div>
         <nav className="flex-1 py-4 space-y-2 overflow-y-auto px-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-track]:shadow-[inset_2px_2px_5px_#111827,inset_-2px_-2px_5px_#374151] [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500">
           {navItems.map((item) => (
@@ -231,7 +231,7 @@ const Layout = () => {
               key={item.path}
               to={item.path}
               title={isCollapsed ? item.name : undefined}
-              className={`flex items-center ${isCollapsed ? 'justify-center' : 'px-4'} py-3 rounded-xl text-sm font-bold transition-all ${
+              className={`flex items-center ${isCollapsed ? 'justify-center' : 'px-4'} py-2.5 rounded-xl text-xs font-bold transition-all ${
                 location.pathname === item.path
                   ? 'bg-gray-800 shadow-[inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151] text-orange-500'
                   : 'bg-gray-800 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] text-gray-400 hover:text-orange-400 hover:shadow-[inset_2px_2px_4px_#111827,inset_-2px_-2px_4px_#374151]'
@@ -257,8 +257,11 @@ const Layout = () => {
           </div>
           <button
             onClick={handleLogout}
-            className="text-sm font-bold text-red-400 bg-gray-800 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_2px_2px_4px_#111827,inset_-2px_-2px_4px_#374151] px-4 py-2.5 rounded-xl transition-all"
+            className="text-sm flex justify-evenly font-bold text-red-400 bg-gray-800 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_2px_2px_4px_#111827,inset_-2px_-2px_4px_#374151] px-4 py-2.5 rounded-xl transition-all"
           >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
             Logout
           </button>
         </div>
