@@ -106,8 +106,15 @@ const Layout = () => {
       });
     }
 
-    return result;
+    return [...result].sort((a, b) => {
+      const dateA = new Date(a.logCreatedDate || a.joinDate || a.registeredAt || a.timestamp || a.createdAt);
+      const dateB = new Date(b.logCreatedDate || b.joinDate || b.registeredAt || b.timestamp || b.createdAt);
+      // Sort descending (newest to oldest)
+      return dateB - dateA;
+    });
   }, [promotersData, startDate, endDate]);
+
+  // console.log(promotersData)
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -116,11 +123,12 @@ const Layout = () => {
 
   const navItems = [
     { name: 'Dashboard', path: '/', icon: <IoGridOutline className="w-5 h-5" /> },
-    { name: 'Category Sales', path: '/promoters-sales', icon: <IoPricetagOutline className="w-5 h-5" /> },
+    { name: 'Category Sales', path: '/category-sales', icon: <IoPricetagOutline className="w-5 h-5" /> },
     { name: 'Brands', path: '/brand-sales', icon: <IoSparklesOutline className="w-5 h-5" /> },
     { name: 'Store Sales', path: '/store-sales', icon: <IoStorefrontOutline className="w-5 h-5" /> },
     { name: 'Product Sales', path: '/product-sales', icon: <IoCubeOutline className="w-5 h-5" /> },
-    { name: 'Sales Report', path: '/promoters', icon: <IoDocumentTextOutline className="w-5 h-5" /> },
+    { name: 'Sales Report', path: '/sales-report', icon: <IoDocumentTextOutline className="w-5 h-5" /> },
+    { name: 'Promoters', path: '/promoters', icon: <IoCubeOutline className="w-5 h-5" /> }
   ];
 
   return (
@@ -199,11 +207,11 @@ const Layout = () => {
         onClick={() => setIsSidebarOpen(false)}
       />
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 ${isCollapsed ? 'w-20' : 'w-64'} bg-gray-800 md:bg-gray-800 flex flex-col shadow-[6px_0_12px_#111827] z-30 transform transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}>
+      <div className={`fixed inset-y-0 left-0 ${isCollapsed ? 'w-20' : 'w-58'} bg-gray-800 md:bg-gray-800 flex flex-col shadow-[6px_0_12px_#111827] z-30 transform transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}>
         <div className={`h-16 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-4 sm:px-6'} mb-4 mt-2 transition-all duration-300`}>
           <button 
             onClick={() => setIsCollapsed(!isCollapsed)} 
-            className="p-2 text-gray-400 hover:text-white hidden md:block focus:outline-none shrink-0 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151]"
+            className="p-2 rounded-2xl text-gray-400 hover:text-white hidden md:block focus:outline-none shrink-0 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151]"
           >
             {isCollapsed ? (
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

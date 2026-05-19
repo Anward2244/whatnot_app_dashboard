@@ -8,6 +8,7 @@ import StoreSales from './pages/StoreSales'
 import ProductSales from './pages/ProductSales'
 import CategorySales from './pages/CategorySales'
 import PromotersData from './PromotersData'
+import Promoters from './pages/Promoters'
 
 function App() {
   return (
@@ -15,11 +16,12 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<Layout />}>
         <Route index element={<Dashboard />} />
-        <Route path="promoters-sales" element={<CategorySales />} />
+        <Route path="category-sales" element={<CategorySales />} />
         <Route path="brand-sales" element={<BrandSales />} />
         <Route path="store-sales" element={<StoreSales />} />
         <Route path="product-sales" element={<ProductSales />} />
-        <Route path="promoters" element={<PromotersData />} />
+        <Route path="sales-report" element={<PromotersData />} />
+        <Route path="promoters" element={<Promoters />} />
       </Route>
     </Routes>
   )
