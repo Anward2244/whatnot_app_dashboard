@@ -1,9 +1,20 @@
-import React, { useMemo } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import React, { useMemo, useState, useEffect } from 'react';
+import { useOutletContext, useLocation } from 'react-router-dom';
 import ReactApexChart from 'react-apexcharts';
 
 const StoreSales = () => {
   const { filteredSales, isLoading } = useOutletContext();
+  const location = useLocation();
+  const [highlightedStore, setHighlightedStore] = useState(null);
+
+  useEffect(() => {
+    const storeFromState = location.state?.selectedStore;
+    if (storeFromState) {
+      setHighlightedStore(storeFromState);
+      // Clear state after using it to avoid re-triggering on other navigations
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state]);
 
   const salesByStore = useMemo(() => filteredSales.reduce((acc, item) => {
     const store = item.promoter?.storeName || item.storeName || item.store?.name || item.store || 'Unknown';
@@ -14,12 +25,21 @@ const StoreSales = () => {
 
   const chartData = useMemo(() => {
     const labels = Object.keys(salesByStore);
-    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316'];
+    const sortedSales = Object.entries(salesByStore).sort((a, b) => b[1] - a[1]);
+    const sortedLabels = sortedSales.map(item => item[0]);
+    const sortedData = sortedSales.map(item => item[1]);
+
+    const colors = sortedLabels.map(label => {
+      if (highlightedStore && label.toLowerCase().includes(highlightedStore.toLowerCase())) {
+        return 'rgba(249, 115, 22, 1)'; // Highlight color
+      }
+      return 'rgba(59, 130, 246, 0.8)'; // Default color
+    });
 
     return {
       series: [{
         name: 'Total Units Sold',
-        data: Object.values(salesByStore)
+        data: sortedData
       }],
       options: {
         chart: {
@@ -39,7 +59,7 @@ const StoreSales = () => {
         dataLabels: { enabled: false },
         legend: { show: false },
         xaxis: {
-          categories: labels,
+          categories: sortedLabels,
           labels: { style: { colors: '#9ca3af' } },
           axisBorder: { show: false },
           axisTicks: { show: false }
@@ -72,12 +92,12 @@ const StoreSales = () => {
         ]
       }
     };
-  }, [salesByStore]);
+  }, [salesByStore, highlightedStore]);
 
   if (isLoading) return <div className="text-gray-400 text-center py-12 font-bold">Loading chart data...</div>;
 
   return (
-    <div className="rounded-2xl bg-gray-800 shadow-[8px_8px_16px_#111827,-8px_-8px_16px_#374151] border-none p-8 h-full flex flex-col">
+    <div className="rounded-2xl bg-gray-800 shadow-[8px_8px_16px_#141a25,-8px_-8px_16px_#2c3a50] border-none p-8 h-full flex flex-col">
       <h2 className="text-2xl font-bold text-gray-100 mb-6">Products sold by each store</h2>
       <div className="relative flex-1 w-full min-h-100">
         <ReactApexChart options={chartData.options} series={chartData.series} type="bar" height="100%" />

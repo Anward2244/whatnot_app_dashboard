@@ -27,7 +27,7 @@ const Login = () => {
       // Hardcoding the token for now as per your previous instruction
       // const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NWRkN2YwMTNiNDFjZDI3ZDRkMzMxNmUiLCJwYXNzd29yZCI6IiQyYiQxMCRHcUI2MjJadGhHWGdVc1V1WE9NMkh1Q3ZOYy42WlVNRlJybGNtUTBWcS5WLmtMbWp4NmRyQyIsImVtYWlsIjoid2hhdG5vdGJ1ZGR5QGdtYWlsLmNvbSIsImlhdCI6MTc3NzQ0MDI5MSwiZXhwIjoxODQwNTEyMjkxfQ.n8-FrzuljinhsErF_QhrdJtECnE3-zIEhaSRdqCayJw";
       
-      localStorage.setItem('token', token);
+      sessionStorage.setItem('token', token);
       navigate('/'); // Redirect to the dashboard
     } catch (err) {
       console.error('Login error:', err);
@@ -39,7 +39,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-800 py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="w-full max-w-md space-y-8 bg-gray-800 p-8 rounded-2xl shadow-[8px_8px_16px_#111827,-8px_-8px_16px_#374151] border-none">
+      <div className="w-full max-w-md space-y-8 bg-gray-800 p-8 rounded-2xl shadow-[8px_8px_16px_#141a25,-8px_-8px_16px_#2c3a50] border-none">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-100">
             Admin Login
@@ -50,14 +50,14 @@ const Login = () => {
             <div>
               <label htmlFor="email-address" className="sr-only">Email address</label>
               <input id="email-address" name="email" type="email" autoComplete="email" required
-                className="relative block w-full appearance-none rounded-xl border-none bg-gray-800 px-4 py-3 text-white placeholder-gray-500 shadow-[inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151] focus:outline-none focus:ring-2 focus:ring-orange-300 sm:text-sm transition-all [&:-webkit-autofill]:[-webkit-text-fill-color:#f3f4f6] [&:-webkit-autofill]:[-webkit-box-shadow:0_0_0px_1000px_#1f2937_inset,inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151]"
+                className="relative block w-full appearance-none rounded-xl border-none bg-gray-800 px-4 py-3 text-white placeholder-gray-500 shadow-[inset_4px_4px_8px_#141a25,inset_-4px_-4px_8px_#2c3a50] focus:outline-none focus:ring-2 focus:ring-orange-300 sm:text-sm transition-all [&:-webkit-autofill]:[-webkit-text-fill-color:#f3f4f6] [&:-webkit-autofill]:[-webkit-box-shadow:0_0_0px_1000px_#1f2937_inset,inset_4px_4px_8px_#141a25,inset_-4px_-4px_8px_#2c3a50]"
                 placeholder="Email address"
                 value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div className="relative">
               <label htmlFor="password" className="sr-only">Password</label>
               <input id="password" name="password" type={showPassword ? "text" : "password"} autoComplete="current-password" required
-                className="relative block w-full appearance-none rounded-xl border-none bg-gray-800 px-4 py-3 pr-10 text-gray-200 placeholder-gray-500 shadow-[inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151] focus:outline-none focus:ring-2 focus:ring-orange-500 sm:text-sm transition-all [&:-webkit-autofill]:[-webkit-text-fill-color:#f3f4f6] [&:-webkit-autofill]:[-webkit-box-shadow:0_0_0px_1000px_#1f2937_inset,inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151]"
+                className="relative block w-full appearance-none rounded-xl border-none bg-gray-800 px-4 py-3 pr-10 text-gray-200 placeholder-gray-500 shadow-[inset_4px_4px_8px_#141a25,inset_-4px_-4px_8px_#2c3a50] focus:outline-none focus:ring-2 focus:ring-orange-500 sm:text-sm transition-all [&:-webkit-autofill]:[-webkit-text-fill-color:#f3f4f6] [&:-webkit-autofill]:[-webkit-box-shadow:0_0_0px_1000px_#1f2937_inset,inset_4px_4px_8px_#141a25,inset_-4px_-4px_8px_#2c3a50]"
                 placeholder="Password"
                 value={password} onChange={(e) => setPassword(e.target.value)} />
               <button
@@ -83,7 +83,7 @@ const Login = () => {
 
           <div>
             <button type="submit" disabled={isLoading}
-              className="group relative flex w-full justify-center rounded-xl border-none bg-gray-800 px-4 py-3 text-sm font-bold text-gray-300 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_2px_2px_4px_#111827,inset_-2px_-2px_4px_#374151] hover:text-orange-400 focus:outline-none disabled:opacity-50 transition-all">
+              className="group relative flex w-full justify-center rounded-xl border-none bg-gray-800 px-4 py-3 text-sm font-bold text-gray-300 shadow-[4px_4px_8px_#141a25,-4px_-4px_8px_#2c3a50] hover:shadow-[inset_2px_2px_4px_#141a25,inset_-2px_-2px_4px_#2c3a50] hover:text-orange-400 focus:outline-none disabled:opacity-50 transition-all">
               {isLoading ? 'Signing in...' : 'Sign in'}
             </button>
           </div>

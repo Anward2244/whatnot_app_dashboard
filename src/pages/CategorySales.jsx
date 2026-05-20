@@ -120,7 +120,7 @@ const CategorySales = () => {
   if (isLoading) return <div className="text-gray-400 text-center py-12 font-bold">Loading chart data...</div>;
 
   return (
-    <div className="rounded-2xl bg-gray-800 shadow-[8px_8px_16px_#111827,-8px_-8px_16px_#374151] border-none p-8 h-full flex flex-col">
+    <div className="rounded-2xl bg-gray-800 shadow-[8px_8px_16px_#141a25,-8px_-8px_16px_#2c3a50] border-none p-8 h-full flex flex-col">
       <h2 className="text-2xl font-bold text-gray-100 mb-6">Top selling Product in each category</h2>
       <div className="relative flex-1 w-full min-h-100">
         <ReactApexChart options={chartData.options} series={chartData.series} type="bar" height="100%" />

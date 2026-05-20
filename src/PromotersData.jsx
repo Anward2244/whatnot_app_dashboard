@@ -1,24 +1,61 @@
 import React, { useState, useMemo } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useLocation } from 'react-router-dom';
 
 const PromotersData = () => {
   const { filteredSales, isLoading } = useOutletContext();
+  const location = useLocation();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const totalPages = Math.ceil(filteredSales.length / itemsPerPage);
+  const salesToDisplay = useMemo(() => {
+    const { selectedProduct, selectedPromoter, selectedStore } = location.state || {};
+    let sales = filteredSales || [];
+
+    if (selectedProduct) {
+      sales = sales.filter(s => {
+        const name = s.productName || s.product?.name || s.product || '';
+        return name.toLowerCase().includes(selectedProduct.toLowerCase());
+      });
+    }
+
+    if (selectedPromoter) {
+      sales = sales.filter(s => {
+        const name = s.promoter?.name || s.promoterName || s.promoter?.username || '';
+        return name.toLowerCase().includes(selectedPromoter.toLowerCase());
+      });
+    }
+
+    if (selectedStore) {
+      sales = sales.filter(s => {
+        const name = s.promoter?.storeName || s.storeName || s.store?.name || s.store || '';
+        return name.toLowerCase().includes(selectedStore.toLowerCase());
+      });
+    }
+
+    return sales;
+  }, [filteredSales, location.state]);
+
+  const totalPages = Math.ceil(salesToDisplay.length / itemsPerPage);
   const currentSales = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredSales.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredSales, currentPage, itemsPerPage]);
+    return salesToDisplay.slice(startIndex, startIndex + itemsPerPage);
+  }, [salesToDisplay, currentPage, itemsPerPage]);
 
   // console.log(currentSales)
   
   return (
     <div className="font-sans text-gray-300 h-full">
       <div className="mx-auto max-w-7xl h-full flex flex-col">
-        <div className="overflow-hidden rounded-2xl bg-gray-800 shadow-[8px_8px_16px_#111827,-8px_-8px_16px_#374151] border-none flex flex-col flex-1">
-          <div className="overflow-x-auto p-4 [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-track]:shadow-[inset_2px_2px_5px_#111827,inset_-2px_-2px_5px_#374151] [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-100">Sales Report</h1>
+          {(location.state?.selectedProduct || location.state?.selectedPromoter || location.state?.selectedStore) && (
+            <p className="text-sm text-gray-400 italic">
+              Showing results for: <span className="font-bold">"{location.state.selectedProduct || location.state.selectedPromoter || location.state.selectedStore}"</span>
+            </p>
+          )}
+        </div>
+        <div className="overflow-hidden rounded-2xl bg-gray-800 shadow-[8px_8px_16px_#141a25,-8px_-8px_16px_#2c3a50] border-none flex flex-col flex-1">
+          <div className="overflow-x-auto p-4 [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-track]:shadow-[inset_2px_2px_5px_#141a25,inset_-2px_-2px_5px_#2c3a50] [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500">
             <table className="min-w-full divide-y divide-gray-700/50 text-sm text-left">
               <thead className="bg-transparent text-gray-400">
                 <tr>
@@ -58,20 +95,20 @@ const PromotersData = () => {
               )}
             </table>
           </div>
-          {filteredSales.length > 0 && (
+          {salesToDisplay.length > 0 && (
             <div className="flex items-center justify-between bg-transparent px-6 py-5 mt-auto">
               <div className="flex flex-1 justify-between sm:hidden">
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="relative inline-flex items-center rounded-xl bg-gray-800 px-4 py-2 text-sm font-bold text-gray-300 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_2px_2px_4px_#111827,inset_-2px_-2px_4px_#374151] disabled:opacity-50 border-none transition-all"
+                  className="relative inline-flex items-center rounded-xl bg-gray-800 px-4 py-2 text-sm font-bold text-gray-300 shadow-[4px_4px_8px_#141a25,-4px_-4px_8px_#2c3a50] hover:shadow-[inset_2px_2px_4px_#141a25,inset_-2px_-2px_4px_#2c3a50] disabled:opacity-50 border-none transition-all"
                 >
                   Previous
                 </button>
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages || totalPages === 0}
-                  className="relative ml-3 inline-flex items-center rounded-xl bg-gray-800 px-4 py-2 text-sm font-bold text-gray-300 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_2px_2px_4px_#111827,inset_-2px_-2px_4px_#374151] disabled:opacity-50 border-none transition-all"
+                  className="relative ml-3 inline-flex items-center rounded-xl bg-gray-800 px-4 py-2 text-sm font-bold text-gray-300 shadow-[4px_4px_8px_#141a25,-4px_-4px_8px_#2c3a50] hover:shadow-[inset_2px_2px_4px_#141a25,inset_-2px_-2px_4px_#2c3a50] disabled:opacity-50 border-none transition-all"
                 >
                   Next
                 </button>
@@ -79,8 +116,8 @@ const PromotersData = () => {
               <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm text-gray-400">
-                    Showing <span className="font-bold text-gray-100">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-bold text-gray-100">{Math.min(currentPage * itemsPerPage, filteredSales.length)}</span> of{' '}
-                    <span className="font-bold text-gray-100">{filteredSales.length}</span> results
+                    Showing <span className="font-bold text-gray-100">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-bold text-gray-100">{Math.min(currentPage * itemsPerPage, salesToDisplay.length)}</span> of{' '}
+                    <span className="font-bold text-gray-100">{salesToDisplay.length}</span> results
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
@@ -90,7 +127,7 @@ const PromotersData = () => {
                       setItemsPerPage(Number(e.target.value));
                       setCurrentPage(1);
                     }}
-                    className="rounded-xl border-none bg-gray-800 text-gray-300 py-2 pl-4 pr-8 text-sm shadow-[inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151] focus:outline-none cursor-pointer"
+                    className="rounded-xl border-none bg-gray-800 text-gray-300 py-2 pl-4 pr-8 text-sm shadow-[inset_4px_4px_8px_#141a25,inset_-4px_-4px_8px_#2c3a50] focus:outline-none cursor-pointer"
                   >
                     <option value={10}>10 per page</option>
                     <option value={25}>25 per page</option>
@@ -101,7 +138,7 @@ const PromotersData = () => {
                     <button
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      className="relative inline-flex items-center rounded-xl px-3 py-2 text-gray-400 bg-gray-800 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_2px_2px_4px_#111827,inset_-2px_-2px_4px_#374151] hover:text-orange-400 focus:z-20 disabled:opacity-50 transition-all border-none"
+                      className="relative inline-flex items-center rounded-xl px-3 py-2 text-gray-400 bg-gray-800 shadow-[4px_4px_8px_#141a25,-4px_-4px_8px_#2c3a50] hover:shadow-[inset_2px_2px_4px_#141a25,inset_-2px_-2px_4px_#2c3a50] hover:text-orange-400 focus:z-20 disabled:opacity-50 transition-all border-none"
                     >
                       <span className="sr-only">Previous</span>
                       <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -111,7 +148,7 @@ const PromotersData = () => {
                     <button
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages || totalPages === 0}
-                      className="relative inline-flex items-center rounded-xl px-3 py-2 text-gray-400 bg-gray-800 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_2px_2px_4px_#111827,inset_-2px_-2px_4px_#374151] hover:text-orange-400 focus:z-20 disabled:opacity-50 transition-all border-none"
+                      className="relative inline-flex items-center rounded-xl px-3 py-2 text-gray-400 bg-gray-800 shadow-[4px_4px_8px_#141a25,-4px_-4px_8px_#2c3a50] hover:shadow-[inset_2px_2px_4px_#141a25,inset_-2px_-2px_4px_#2c3a50] hover:text-orange-400 focus:z-20 disabled:opacity-50 transition-all border-none"
                     >
                       <span className="sr-only">Next</span>
                       <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">

@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useOutletContext, useLocation } from 'react-router-dom';
 import ReactApexChart from 'react-apexcharts';
 
 const ProductSales = () => {
   const { filteredSales, isLoading } = useOutletContext();
-
+  const location = useLocation();
+  
   const brands = useMemo(() => {
     const brandSet = new Set();
     filteredSales.forEach(item => {
@@ -15,6 +16,7 @@ const ProductSales = () => {
   }, [filteredSales]);
 
   const [selectedBrand, setSelectedBrand] = useState('All');
+  const [highlightedProduct, setHighlightedProduct] = useState(null);
 
   const salesByProduct = useMemo(() => {
     const filteredByBrand = selectedBrand === 'All'
@@ -42,12 +44,26 @@ const ProductSales = () => {
     return mapping;
   }, [filteredSales]);
 
+  useEffect(() => {
+    const productFromState = location.state?.selectedProduct;
+    if (productFromState && productBrands[productFromState]) {
+      const brand = productBrands[productFromState];
+      setSelectedBrand(brand);
+      setHighlightedProduct(productFromState);
+      // Clear state after using it to avoid re-triggering on other navigations
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state, productBrands]);
+
   const chartData = useMemo(() => {
     const sortedSales = Object.entries(salesByProduct).sort((a, b) => b[1] - a[1]);
     const labels = sortedSales.map(item => item[0]);
     const data = sortedSales.map(item => item[1]);
 
     const colors = labels.map(label => {
+      if (highlightedProduct && label === highlightedProduct) {
+        return 'rgba(249, 115, 22, 1)'; // Highlight color
+      }
       const brand = (productBrands[label] || '').toLowerCase();
       const productLower = label.toLowerCase();
       if (brand.includes('boat') || productLower.includes('boat')) return 'rgba(239, 68, 68, 0.8)';
@@ -111,20 +127,20 @@ const ProductSales = () => {
         ]
       }
     };
-  }, [salesByProduct, productBrands]);
+  }, [salesByProduct, productBrands, highlightedProduct]);
 
   if (isLoading) return <div className="text-gray-400 font-bold text-center py-12">Loading chart data...</div>;
 
   return (
-    <div className="rounded-2xl bg-gray-800 shadow-[8px_8px_16px_#111827,-8px_-8px_16px_#374151] border-none p-8 h-full flex flex-col">
+    <div className="rounded-2xl bg-gray-800 shadow-[8px_8px_16px_#141a25,-8px_-8px_16px_#2c3a50] border-none p-8 h-full flex flex-col overflow-hidden">
       <h2 className="text-2xl font-bold text-gray-100 mb-6">Products sold in each Brand</h2>
       <div className="flex flex-wrap gap-4 mb-6">
         <button
           onClick={() => setSelectedBrand('All')}
           className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${
             selectedBrand === 'All'
-              ? 'bg-gray-800 shadow-[inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151] text-orange-500 border-none'
-              : 'bg-gray-800 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_2px_2px_4px_#111827,inset_-2px_-2px_4px_#374151] text-gray-400 border-none hover:text-orange-400'
+              ? 'bg-gray-800 shadow-[inset_4px_4px_8px_#141a25,inset_-4px_-4px_8px_#2c3a50] text-orange-500 border-none'
+              : 'bg-gray-800 shadow-[4px_4px_8px_#141a25,-4px_-4px_8px_#2c3a50] hover:shadow-[inset_2px_2px_4px_#141a25,inset_-2px_-2px_4px_#2c3a50] text-gray-400 border-none hover:text-orange-400'
           }`}
         >
           All Brands
@@ -135,15 +151,15 @@ const ProductSales = () => {
             onClick={() => setSelectedBrand(brand)}
             className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${
               selectedBrand === brand
-                ? 'bg-gray-800 shadow-[inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151] text-orange-500 border-none'
-                : 'bg-gray-800 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_2px_2px_4px_#111827,inset_-2px_-2px_4px_#374151] text-gray-400 border-none hover:text-orange-400'
+                ? 'bg-gray-800 shadow-[inset_4px_4px_8px_#141a25,inset_-4px_-4px_8px_#2c3a50] text-orange-500 border-none'
+                : 'bg-gray-800 shadow-[4px_4px_8px_#141a25,-4px_-4px_8px_#2c3a50] hover:shadow-[inset_2px_2px_4px_#141a25,inset_-2px_-2px_4px_#2c3a50] text-gray-400 border-none hover:text-orange-400'
             }`}
           >
             {brand}
           </button>
         ))}
       </div>
-      <div className="relative flex-1 w-full min-h-100 overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-track]:shadow-[inset_2px_2px_5px_#111827,inset_-2px_-2px_5px_#374151] [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500">
+      <div className="relative flex-1 min-h-0 w-full overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-track]:shadow-[inset_2px_2px_5px_#141a25,inset_-2px_-2px_5px_#2c3a50] [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500">
         <ReactApexChart options={chartData.options} series={chartData.series} type="bar" height={Math.max(400, chartData.series[0].data.length * 45)} />
       </div>
     </div>

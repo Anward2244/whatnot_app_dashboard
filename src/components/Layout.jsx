@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import SearchQuery from './SearchQuery';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import axios from 'axios';
@@ -21,14 +22,15 @@ const Layout = () => {
   const [startDate, endDate] = dateRange;
   const [salesData, setSalesData] = useState([]);
   const [promotersData, setPromotersData] = useState([]);
+  const [userProfile, setUserProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   const fetchData = useCallback(async (isBackground = false) => {
     try {
       if (!isBackground) setIsLoading(true);
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       if (!token) {
         navigate('/login');
         return;
@@ -60,6 +62,24 @@ const Layout = () => {
       if (!isBackground) setIsLoading(false);
     }
   }, [navigate]);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const token = sessionStorage.getItem('token');
+      if (!token) return;
+      try {
+        const response = await axios.post(URLS.getProfile, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const profileData = response.data?.profileResult || response.data?.data || response.data || {};
+        // console.log(profileData);
+        setUserProfile(profileData);
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -117,7 +137,7 @@ const Layout = () => {
   // console.log(promotersData)
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
     navigate('/login');
   };
 
@@ -142,59 +162,59 @@ const Layout = () => {
           border-bottom-color: #1f2937 !important;
         }
         .react-datepicker-popper[data-placement^=bottom] .react-datepicker__triangle::before {
-          border-bottom-color: #111827 !important;
+          border-bottom-color: #141a25 !important;
         }
         .react-datepicker-popper[data-placement^=top] .react-datepicker__triangle::before,
         .react-datepicker-popper[data-placement^=top] .react-datepicker__triangle::after {
           border-top-color: #1f2937 !important;
         }
         .react-datepicker-popper[data-placement^=top] .react-datepicker__triangle::before {
-          border-top-color: #111827 !important;
+          border-top-color: #141a25 !important;
         }
         .react-datepicker {
           background-color: #1f2937 !important;
           border: none !important;
-          box-shadow: 6px 6px 12px #111827, -6px -6px 12px #374151 !important;
-          color: #d1d5db !important;
+          box-shadow: 6px 6px 12px #141a25, -6px -6px 12px #2c3a50 !important;
+          color: #d4d4d4 !important;
           border-radius: 1rem !important;
           overflow: hidden;
           font-family: inherit;
         }
         .react-datepicker__header {
           background-color: #1f2937 !important;
-          border-bottom: 1px solid #374151 !important;
+          border-bottom: 1px solid #2c3a50 !important;
           padding-top: 1rem !important;
         }
         .react-datepicker__current-month,
         .react-datepicker__day-name,
         .react-datepicker-time__header {
-          color: #9ca3af !important;
+          color: #a3a3a3 !important;
           font-weight: 600 !important;
         }
         .react-datepicker__day {
-          color: #d1d5db !important;
+          color: #d4d4d4 !important;
           border-radius: 0.5rem !important;
           margin: 0.166rem !important;
         }
         .react-datepicker__day:hover {
           background-color: transparent !important;
-          box-shadow: inset 2px 2px 5px #111827, inset -2px -2px 5px #374151 !important;
+          box-shadow: inset 2px 2px 5px #141a25, inset -2px -2px 5px #2c3a50 !important;
         }
         .react-datepicker__day--selected,
         .react-datepicker__day--in-selecting-range,
         .react-datepicker__day--in-range {
           background-color: #1f2937 !important;
-          box-shadow: inset 3px 3px 6px #111827, inset -3px -3px 6px #374151 !important;
+          box-shadow: inset 3px 3px 6px #141a25, inset -3px -3px 6px #2c3a50 !important;
           color: #f97316 !important;
           font-weight: bold !important;
         }
         .react-datepicker__day--keyboard-selected {
           background-color: #1f2937 !important;
-          box-shadow: inset 2px 2px 5px #111827, inset -2px -2px 5px #374151 !important;
+          box-shadow: inset 2px 2px 5px #141a25, inset -2px -2px 5px #2c3a50 !important;
           color: #f97316 !important;
         }
         .react-datepicker__day--disabled {
-          color: #4b5563 !important;
+          color: #525252 !important;
         }
         .react-datepicker__close-icon::after {
           background-color: #1f2937 !important;
@@ -207,25 +227,16 @@ const Layout = () => {
         onClick={() => setIsSidebarOpen(false)}
       />
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 ${isCollapsed ? 'w-20' : 'w-46'} bg-gray-800 md:bg-gray-800 flex flex-col shadow-[6px_0_12px_#111827] z-30 transform transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}>
-        <div className={`h-16 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-4 sm:px-6'} mb-4 mt-2 transition-all duration-300`}>
-          <button 
-            onClick={() => setIsCollapsed(!isCollapsed)} 
-            className="p-1 rounded-xl text-gray-400 hover:text-white hidden md:block focus:outline-none shrink-0 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151]"
-          >
-            {isCollapsed ? (
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-              </svg>
-            ) : (
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-              </svg>
-            )}
-          </button>
-          {!isCollapsed && <h1 className="text-md font-bold text-gray-100 whitespace-nowrap overflow-hidden mr-2">Dashboard</h1>}
+      <div 
+        className={`overflow-x-auto fixed inset-y-0 left-0 ${isCollapsed ? 'w-20' : 'w-46'} bg-gray-800 md:bg-gray-800 flex flex-col shadow-[6px_0_12px_#141a25] z-30 transform transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}
+        onMouseEnter={() => setIsCollapsed(false)}
+        onMouseLeave={() => setIsCollapsed(true)}
+      >
+        <div className="h-16 flex items-end justify-center mb-4 mt-2 transition-all duration-300">
+          <img src="src\assets\calogo1.png" alt="Logo" className="w-12 md:w-12" />
+          <h1 className={`text-2xl ml-2 font-bold ${isCollapsed ? 'hidden' : 'md:inline-block'}`}>Whatnot</h1>
         </div>
-        <nav className="flex-1 py-4 space-y-2 overflow-y-auto px-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-track]:shadow-[inset_2px_2px_5px_#111827,inset_-2px_-2px_5px_#374151] [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500">
+        <nav className="flex-1 py-4 space-y-2 overflow-y-auto px-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-track]:shadow-[inset_2px_2px_5px_#141a25,inset_-2px_-2px_5px_#2c3a50] [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500">
           {navItems.map((item) => (
             <Link
               key={item.path}
@@ -233,8 +244,8 @@ const Layout = () => {
               title={isCollapsed ? item.name : undefined}
               className={`flex items-center ${isCollapsed ? 'justify-center' : 'px-4'} py-2.5 rounded-xl text-xs font-bold transition-all ${
                 location.pathname === item.path
-                  ? 'bg-gray-800 shadow-[inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151] text-orange-500'
-                  : 'bg-gray-800 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] text-gray-400 hover:text-orange-400 hover:shadow-[inset_2px_2px_4px_#111827,inset_-2px_-2px_4px_#374151]'
+                  ? 'bg-gray-800 shadow-[inset_4px_4px_8px_#141a25,inset_-4px_-4px_8px_#2c3a50] text-orange-500'
+                  : 'bg-gray-800 shadow-[4px_4px_8px_#141a25,-4px_-4px_8px_#2c3a50] text-gray-400 hover:text-orange-400 hover:shadow-[inset_2px_2px_4px_#141a25,inset_-2px_-2px_4px_#2c3a50]'
               }`}
             >
               <div className={`${isCollapsed ? '' : 'mr-3'}`}>{item.icon}</div>
@@ -252,12 +263,12 @@ const Layout = () => {
               onChange={(update) => setDateRange(update || [null, null])}
               isClearable={true}
               placeholderText="Select date range"
-              className="rounded-xl border-none bg-gray-800 text-gray-200 placeholder-gray-500 shadow-[inset_4px_4px_8px_#111827,inset_-4px_-4px_8px_#374151] focus:outline-none text-xs px-4 py-2.5 w-full transition-all"
+              className="rounded-xl border-none bg-gray-800 text-gray-200 placeholder-gray-500 shadow-[inset_4px_4px_8px_#141a25,inset_-4px_-4px_8px_#2c3a50] focus:outline-none text-xs px-4 py-2.5 w-full transition-all"
             />
           </div>
           <button
             onClick={handleLogout}
-            className="text-sm flex justify-evenly font-bold text-red-400 bg-gray-800 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_2px_2px_4px_#111827,inset_-2px_-2px_4px_#374151] px-4 py-2.5 rounded-xl transition-all"
+            className="text-sm flex justify-evenly font-bold text-red-400 bg-gray-800 shadow-[4px_4px_8px_#141a25,-4px_-4px_8px_#2c3a50] hover:shadow-[inset_2px_2px_4px_#141a25,inset_-2px_-2px_4px_#2c3a50] px-4 py-2.5 rounded-xl transition-all"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -270,7 +281,7 @@ const Layout = () => {
             <button
               onClick={handleLogout}
               title="Logout"
-              className="text-red-400 flex items-center justify-center bg-gray-800 shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151] hover:shadow-[inset_2px_2px_4px_#111827,inset_-2px_-2px_4px_#374151] py-3 rounded-xl transition-all"
+              className="text-red-400 flex items-center justify-center bg-gray-800 shadow-[4px_4px_8px_#141a25,-4px_-4px_8px_#2c3a50] hover:shadow-[inset_2px_2px_4px_#141a25,inset_-2px_-2px_4px_#2c3a50] py-3 rounded-xl transition-all"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -282,17 +293,31 @@ const Layout = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden w-full relative">
-        <button
-          onClick={() => setIsSidebarOpen(true)}
-          className="md:hidden absolute top-4 right-4 z-20 text-gray-400 hover:text-gray-100 focus:outline-none bg-gray-800 p-2 rounded-xl shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151]"
-        >
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
+        {/* Header */}
+        <header className="h-20 flex items-center justify-between px-4 sm:px-8 shrink-0 z-10 shadow-[4px_4px_8px_#141a25,-4px_-4px_8px_#2c3a50]">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="md:hidden text-gray-400 hover:text-gray-100 focus:outline-none bg-gray-800 p-2 rounded-xl shadow-[4px_4px_8px_#141a25,-4px_-4px_8px_#2c3a50]"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <SearchQuery filteredPromoters={filteredPromoters} filteredSales={filteredSales} />
+          </div>
+          <div className="flex items-center gap-3 bg-gray-800 shadow-[4px_4px_8px_#141a25,-4px_-4px_8px_#2c3a50] px-4 py-2 rounded-xl">
+            {/* <div className="w-8 h-8 rounded-full bg-gray-700 shadow-[inset_2px_2px_4px_#171717,inset_-2px_-2px_4px_#404040] flex items-center justify-center text-orange-500 font-bold uppercase">
+              {userProfile?.username ? userProfile.username.charAt(0) : (userProfile?.name ? userProfile.name.charAt(0) : 'U')}
+            </div> */}
+            <span className="text-sm font-bold text-gray-300">
+              Welcome, {userProfile?.username || userProfile?.name || 'User'}!
+            </span>
+          </div>
+        </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-8 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-track]:shadow-[inset_2px_2px_5px_#111827,inset_-2px_-2px_5px_#374151] [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-8 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-track]:shadow-[inset_2px_2px_5px_#141a25,inset_-2px_-2px_5px_#2c3a50] [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500">
           <Outlet context={{ filteredSales, filteredPromoters, isLoading, refetch: fetchData }} />
         </main>
       </div>
