@@ -228,7 +228,7 @@ const Layout = () => {
       />
       {/* Sidebar */}
       <div 
-        className={`overflow-x-auto fixed inset-y-0 left-0 ${isCollapsed ? 'w-20' : 'w-46'} bg-gray-800 md:bg-gray-800 flex flex-col shadow-[6px_0_12px_#141a25] z-30 transform transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}
+        className={`overflow-x-hidden fixed inset-y-0 left-0 ${isCollapsed ? 'w-20' : 'w-46'} bg-gray-800 md:bg-gray-800 flex flex-col shadow-[6px_0_12px_#141a25] z-30 transform transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}
         onMouseEnter={() => setIsCollapsed(false)}
         onMouseLeave={() => setIsCollapsed(true)}
       >
@@ -236,7 +236,7 @@ const Layout = () => {
           <img src="src\assets\calogo1.png" alt="Logo" className="w-12 md:w-12" />
           <h1 className={`text-2xl ml-2 font-bold ${isCollapsed ? 'hidden' : 'md:inline-block'}`}>Whatnot</h1>
         </div>
-        <nav className="flex-1 py-4 space-y-2 overflow-y-auto px-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-track]:shadow-[inset_2px_2px_5px_#141a25,inset_-2px_-2px_5px_#2c3a50] [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500">
+        <nav className="flex-1 py-4 space-y-2 overflow-y-auto overflow-x-hidden px-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-track]:shadow-[inset_2px_2px_5px_#141a25,inset_-2px_-2px_5px_#2c3a50] [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500">
           {navItems.map((item) => (
             <Link
               key={item.path}
@@ -317,7 +317,7 @@ const Layout = () => {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-8 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-track]:shadow-[inset_2px_2px_5px_#141a25,inset_-2px_-2px_5px_#2c3a50] [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-8 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-track]:shadow-[inset_2px_2px_5px_#141a25,inset_-2px_-2px_5px_#2c3a50] [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500">
           <Outlet context={{ filteredSales, filteredPromoters, isLoading, refetch: fetchData }} />
         </main>
       </div>
