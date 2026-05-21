@@ -12,6 +12,13 @@ const Dashboard = () => {
   });
   const navigate = useNavigate();
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Poll for new data every 5 seconds if a `refetch` function is provided in the context
   useEffect(() => {
     if (typeof refetch === 'function') {
@@ -246,17 +253,32 @@ const Dashboard = () => {
     let minX = chartConfig.range ? chartConfig.range.min : undefined;
     let maxX = chartConfig.range ? chartConfig.range.max : undefined;
 
-    // By default, display latest two months (approx 60 days) of daily data
+    // By default, display 30 days of daily data on desktop, and 7 days on mobile
     if (isDaily && !chartConfig.range && salesData.length > 0) {
       const maxTs = salesData[salesData.length - 1][0];
       maxX = maxTs;
-      minX = maxTs - (30 * 24 * 60 * 60 * 1000);
+      const daysToDisplay = isMobile ? 7 : 30;
+      minX = maxTs - (daysToDisplay * 24 * 60 * 60 * 1000);
     }
 
     const options = {
         chart: {
           type: 'line',
-          toolbar: { show: false, tools: { download: false } },
+          toolbar: { 
+            show: true, 
+            tools: { 
+              download: false,
+              zoom: true,
+              zoomin: true,
+              zoomout: true,
+              pan: true,
+              reset: true
+            } 
+          },
+          zoom: {
+            enabled: true,
+            allowMouseWheelZoom: false
+          },
           background: 'transparent',
           events: {
             zoomed: (chartContext, { xaxis }) => {
@@ -397,7 +419,7 @@ const Dashboard = () => {
       ],
       options
     };
-  }, [salesData, promotersData, chartConfig]);
+  }, [salesData, promotersData, chartConfig, isMobile]);
 
   const todaysSales = useMemo(() => {
     const today = new Date();
@@ -431,7 +453,7 @@ const Dashboard = () => {
       {/* Breakdown Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div 
-          onClick={() => navigate('/promoters-sales')}
+          onClick={() => navigate('/category-sales')}
           className="cursor-pointer bg-gray-800 rounded-2xl p-6 shadow-[4px_4px_8px_#141a25,-4px_-4px_8px_#2c3a50] hover:shadow-[inset_4px_4px_8px_#141a25,inset_-4px_-4px_8px_#2c3a50] transition-all flex flex-col min-h-75"
         >
           <h3 className="text-lg font-bold text-gray-100 mb-4">Top Product in each Category</h3>

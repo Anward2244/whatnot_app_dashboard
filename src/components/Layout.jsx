@@ -151,11 +151,17 @@ const Layout = () => {
     { name: 'Promoters', path: '/promoters', icon: <IoCubeOutline className="w-4 h-4" /> }
   ];
 
+  const sidebarCollapsed = isCollapsed && !isSidebarOpen;
+
   return (
     <>
       <style>{`
         .react-datepicker-wrapper input {
           background-color: transparent;
+        }
+        .react-datepicker-popper {
+          z-index: 40 !important;
+          margin-left: 1.8rem !important;
         }
         .react-datepicker-popper[data-placement^=bottom] .react-datepicker__triangle::before,
         .react-datepicker-popper[data-placement^=bottom] .react-datepicker__triangle::after {
@@ -228,32 +234,32 @@ const Layout = () => {
       />
       {/* Sidebar */}
       <div 
-        className={`overflow-x-hidden fixed inset-y-0 left-0 ${isCollapsed ? 'w-20' : 'w-46'} bg-gray-800 md:bg-gray-800 flex flex-col shadow-[6px_0_12px_#141a25] z-30 transform transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}
+        className={`overflow-x-hidden fixed inset-y-0 left-0 ${sidebarCollapsed ? 'w-20' : 'w-46'} bg-gray-800 md:bg-gray-800 flex flex-col shadow-[6px_0_12px_#141a25] z-30 transform transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}
         onMouseEnter={() => setIsCollapsed(false)}
         onMouseLeave={() => setIsCollapsed(true)}
       >
         <div className="h-16 flex items-end justify-center mb-4 mt-2 transition-all duration-300">
           <img src="src\assets\calogo1.png" alt="Logo" className="w-12 md:w-12" />
-          <h1 className={`text-2xl ml-2 font-bold ${isCollapsed ? 'hidden' : 'md:inline-block'}`}>Whatnot</h1>
+          <h1 className={`text-2xl font-bold whitespace-nowrap overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-37.5 opacity-100 ml-2'}`}>Whatnot</h1>
         </div>
         <nav className="flex-1 py-4 space-y-2 overflow-y-auto overflow-x-hidden px-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-track]:shadow-[inset_2px_2px_5px_#141a25,inset_-2px_-2px_5px_#2c3a50] [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500">
           {navItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              title={isCollapsed ? item.name : undefined}
-              className={`flex items-center ${isCollapsed ? 'justify-center' : 'px-4'} py-2.5 rounded-xl text-xs font-bold transition-all ${
+              title={sidebarCollapsed ? item.name : undefined}
+              className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'px-4'} py-2.5 rounded-xl text-xs font-bold transition-all ${
                 location.pathname === item.path
                   ? 'bg-gray-800 shadow-[inset_4px_4px_8px_#141a25,inset_-4px_-4px_8px_#2c3a50] text-orange-500'
                   : 'bg-gray-800 shadow-[4px_4px_8px_#141a25,-4px_-4px_8px_#2c3a50] text-gray-400 hover:text-orange-400 hover:shadow-[inset_2px_2px_4px_#141a25,inset_-2px_-2px_4px_#2c3a50]'
               }`}
             >
-              <div className={`${isCollapsed ? '' : 'mr-3'}`}>{item.icon}</div>
-              {!isCollapsed && <span className="whitespace-nowrap">{item.name}</span>}
+              <div className={`transition-all duration-300 ${sidebarCollapsed ? 'mr-0' : 'mr-3'}`}>{item.icon}</div>
+              <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-37.5 opacity-100'}`}>{item.name}</span>
             </Link>
           ))}
         </nav>
-        <div className={`p-4 flex flex-col gap-6 mb-4 ${isCollapsed ? 'hidden' : ''}`}>
+        <div className={`flex flex-col gap-6 overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'max-h-0 opacity-0 p-0 m-0' : 'max-h-125 opacity-100 p-4 mb-4'}`}>
           <div className="flex flex-col gap-2">
             <label htmlFor="dateRange" className="text-sm font-bold text-gray-400">Date Range:</label>
             <DatePicker
@@ -263,6 +269,7 @@ const Layout = () => {
               onChange={(update) => setDateRange(update || [null, null])}
               isClearable={true}
               placeholderText="Select date range"
+              portalId="root"
               className="rounded-xl border-none bg-gray-800 text-gray-200 placeholder-gray-500 shadow-[inset_4px_4px_8px_#141a25,inset_-4px_-4px_8px_#2c3a50] focus:outline-none text-xs px-4 py-2.5 w-full transition-all"
             />
           </div>
@@ -276,19 +283,17 @@ const Layout = () => {
             Logout
           </button>
         </div>
-        {isCollapsed && (
-          <div className="p-4 flex flex-col gap-4 mb-4">
-            <button
-              onClick={handleLogout}
-              title="Logout"
-              className="text-red-400 flex items-center justify-center bg-gray-800 shadow-[4px_4px_8px_#141a25,-4px_-4px_8px_#2c3a50] hover:shadow-[inset_2px_2px_4px_#141a25,inset_-2px_-2px_4px_#2c3a50] py-3 rounded-xl transition-all"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-            </button>
-          </div>
-        )}
+        <div className={`flex flex-col gap-4 overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'max-h-25 opacity-100 p-4 mb-4' : 'max-h-0 opacity-0 p-0 m-0'}`}>
+          <button
+            onClick={handleLogout}
+            title="Logout"
+            className="text-red-400 flex items-center justify-center bg-gray-800 shadow-[4px_4px_8px_#141a25,-4px_-4px_8px_#2c3a50] hover:shadow-[inset_2px_2px_4px_#141a25,inset_-2px_-2px_4px_#2c3a50] py-3 rounded-xl transition-all"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Main Content */}
