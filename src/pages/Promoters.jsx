@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useOutletContext, useLocation } from 'react-router-dom';
 
 const Promoters = () => {
@@ -6,17 +6,34 @@ const Promoters = () => {
   const location = useLocation();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [globalFilter, setGlobalFilter] = useState('');
 
   const promotersToDisplay = useMemo(() => {
+    let results = filteredPromoters || [];
+
     const selectedPromoter = location.state?.selectedPromoter;
     if (selectedPromoter) {
-      return (filteredPromoters || []).filter(p => {
+      results = results.filter(p => {
         const name = p.name || p.promoterName || p.username || '';
         return name.toLowerCase().includes(selectedPromoter.toLowerCase());
       });
     }
-    return filteredPromoters || [];
-  }, [filteredPromoters, location.state]);
+
+    if (globalFilter) {
+      const lowerFilter = globalFilter.toLowerCase();
+      results = results.filter(p => {
+        const name = p.name || p.promoterName || p.username || '';
+        const store = p.storeName || p.store?.name || p.store || '';
+        return name.toLowerCase().includes(lowerFilter) || store.toLowerCase().includes(lowerFilter);
+      });
+    }
+
+    return results;
+  }, [filteredPromoters, location.state, globalFilter]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [globalFilter, location.state]);
 
   const totalPages = Math.ceil((promotersToDisplay?.length || 0) / itemsPerPage);
   
@@ -28,14 +45,24 @@ const Promoters = () => {
   return (
     <div className="font-sans text-gray-300 h-full">
       <div className="mx-auto max-w-7xl h-full flex flex-col">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-100">Promoters Data</h1>
-          {location.state?.selectedPromoter && (
-            <p className="text-sm text-gray-400 italic">
-              Showing results for: <span className="font-bold">"{location.state.selectedPromoter}"</span>
-            </p>
-          )}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold text-gray-100">Promoters Data</h1>
+            {location.state?.selectedPromoter && (
+              <p className="text-sm text-gray-400 italic">
+                Showing results for: <span className="font-bold">"{location.state.selectedPromoter}"</span>
+              </p>
+            )}
+          </div>
+          <input
+            type="text"
+            placeholder="Search promoters or stores..."
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            className="rounded-xl border-none bg-gray-800 text-gray-200 placeholder-gray-500 shadow-[inset_4px_4px_8px_#141a25,inset_-4px_-4px_8px_#2c3a50] focus:outline-none px-4 py-2 text-sm w-full sm:w-64 transition-all"
+          />
         </div>
+
         <div className="overflow-hidden rounded-2xl bg-gray-800 shadow-[8px_8px_16px_#141a25,-8px_-8px_16px_#2c3a50] border-none flex flex-col flex-1">
           <div className="overflow-x-auto p-4 [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-track]:shadow-[inset_2px_2px_5px_#141a25,inset_-2px_-2px_5px_#2c3a50] [&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500">
             <table className="min-w-full divide-y divide-gray-700/50 text-sm text-left">

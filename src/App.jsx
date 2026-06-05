@@ -7,7 +7,7 @@ import BrandSales from './pages/BrandSales'
 import StoreSales from './pages/StoreSales'
 import ProductSales from './pages/ProductSales'
 import CategorySales from './pages/CategorySales'
-import PromotersData from './PromotersData'
+import PromotersData from './pages/PromotersData'
 import Promoters from './pages/Promoters'
 
 function App() {

@@ -10,7 +10,8 @@ import {
   IoSparklesOutline,
   IoStorefrontOutline,
   IoCubeOutline,
-  IoDocumentTextOutline
+  IoDocumentTextOutline,
+  IoPeopleOutline
 } from 'react-icons/io5';
 import { URLS } from '../URLs/Urls';
 
@@ -148,7 +149,7 @@ const Layout = () => {
     { name: 'Store Sales', path: '/store-sales', icon: <IoStorefrontOutline className="w-4 h-4" /> },
     { name: 'Product Sales', path: '/product-sales', icon: <IoCubeOutline className="w-4 h-4" /> },
     { name: 'Sales Report', path: '/sales-report', icon: <IoDocumentTextOutline className="w-4 h-4" /> },
-    { name: 'Promoters', path: '/promoters', icon: <IoCubeOutline className="w-4 h-4" /> }
+    { name: 'Promoters', path: '/promoters', icon: <IoPeopleOutline className="w-4 h-4" /> }
   ];
 
   const sidebarCollapsed = isCollapsed && !isSidebarOpen;

@@ -284,7 +284,7 @@ const Dashboard = () => {
             zoomed: (chartContext, { xaxis }) => {
               if (!xaxis || xaxis.min === undefined || xaxis.max === undefined) return;
               const rangeInMs = xaxis.max - xaxis.min;
-              const threeMonthsInMs = 30 * 24 * 60 * 60 * 1000;
+              const threeMonthsInMs = 90 * 24 * 60 * 60 * 1000;
               
               if (rangeInMs > 0 && rangeInMs < threeMonthsInMs && !isDaily) {
                 setChartConfig({
@@ -311,7 +311,23 @@ const Dashboard = () => {
               }));
             },
             beforeResetZoom: () => {
-              setChartConfig({ granularity: 'monthly', range: null });
+              setChartConfig({ granularity: 'daily', range: null });
+              
+              let maxTs = Date.now();
+              if (filteredSales.length > 0 || filteredPromoters.length > 0) {
+                const getTs = (item) => new Date(item.date || item.createdAt || item.saleDate || item.timestamp || item.logCreatedDate || item.joinDate || item.registeredAt).getTime();
+                const maxSalesTs = filteredSales.length > 0 ? getTs(filteredSales[0]) : 0;
+                const maxPromoterTs = filteredPromoters.length > 0 ? getTs(filteredPromoters[0]) : 0;
+                maxTs = Math.max(maxSalesTs, maxPromoterTs) || Date.now();
+              }
+              
+              const daysToDisplay = isMobile ? 7 : 30;
+              return {
+                xaxis: {
+                  min: maxTs - (daysToDisplay * 24 * 60 * 60 * 1000),
+                  max: maxTs
+                }
+              };
             },
           },
         },
@@ -358,13 +374,13 @@ const Dashboard = () => {
         },
         yaxis: [
           {
+            opposite: true,
             title: { text: 'Total Sales', style: { color: '#f97316' } },
             labels: { style: { colors: '#9ca3af' } },
             axisBorder: { show: false },
             axisTicks: { show: false }
           },
           {
-            opposite: true,
             title: { text: 'Promoters Registered', style: { color: '#3b82f6' } },
             labels: { style: { colors: '#9ca3af' } },
             axisBorder: { show: false },
@@ -392,8 +408,8 @@ const Dashboard = () => {
                 labels: { style: { fontSize: '10px' } }
               },
               yaxis: [
-                { labels: { style: { fontSize: '10px' } }, title: { style: { fontSize: '11px' } } },
-                { opposite: true, labels: { style: { fontSize: '10px' } }, title: { style: { fontSize: '11px' } } }
+                { opposite: true, labels: { style: { fontSize: '10px' } }, title: { style: { fontSize: '11px' } } },
+                { labels: { style: { fontSize: '10px' } }, title: { style: { fontSize: '11px' } } }
               ],
               legend: {
                 position: 'bottom',
